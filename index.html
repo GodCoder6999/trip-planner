@@ -214,8 +214,6 @@
 
         try {
             // CALLING YOUR BACKEND
-            // Note: We use the relative path '/api/plan-trip'. 
-            // Vercel automatically routes this to your api/index.js file.
             const res = await fetch('/api/plan-trip', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
