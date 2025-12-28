@@ -1,17 +1,17 @@
 {
-  "name": "ai-tour-planner-backend",
+  "name": "ai-trip-planner",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "api/index.js",
+  "engines": {
+    "node": "20.x"
+  },
   "scripts": {
-    "start": "node index.js"
+    "start": "node api/index.js"
   },
   "dependencies": {
+    "express": "^4.19.2",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
-    "express": "^4.19.2",
     "groq-sdk": "^0.3.3"
-  },
-  "engines": {
-    "node": "18.x"
   }
 }
