@@ -12,42 +12,64 @@ const groq = new Groq({
 });
 
 app.post('/api/plan-trip', async (req, res) => {
-    const { origin, destination, days, budget, transport, currency, type } = req.body;
+    const { origin, destination, days, budget, transport, currency } = req.body;
 
     try {
         const systemPrompt = `
-        You are an elite travel logistician.
-        RULES:
-        1. **Route Optimization:** Start at '${origin}'. If the user lists '${origin}' as a destination, SKIP IT (they live there) and go to the next city immediately. Reorder the other cities geographically.
-        2. **Keywords:** For every location, provide a simple "image_keyword" (1-3 words max) for a stock photo search (e.g., "Eiffel Tower", "Taj Mahal", "Pizza").
-        3. **JSON Only:** Return ONLY raw JSON.
+        You are an Intelligent Travel Comparison Engine. 
+        Your goal is to compare "The Rail Experience" vs "The Air Shortcut" for every leg of an Indian trip.
+
+        CORE LOGIC:
+        1. **Route Strategy:** Start at '${origin}'. If '${origin}' is in the destination list, SKIP IT as a destination. Optimize the order of the remaining cities.
+        2. **The Decision Rule:** - If distance < 400km, Flight is "Not Practical".
+           - For long hauls, highlight time savings.
+        3. **Structure:** For every movement between cities (Leg 1, Leg 2...), provide a comparison.
+        4. **Images:** Provide a simple "image_keyword" (e.g., "Varanasi Ghats") for the destination.
+        
+        OUTPUT FORMAT:
+        Return ONLY raw JSON matching this specific schema. No markdown.
         `;
 
         const userPrompt = `
-        Plan a ${days}-day trip.
-        Start: ${origin}
-        Destinations: ${destination}
-        Budget: ${budget}
-        Transport: ${transport}
-        Currency: ${currency}
-        
-        Schema:
+        Plan a trip starting from ${origin} to ${destination}.
+        Total Days: ${days}. Budget: ${budget}. Currency: ${currency}.
+
+        JSON SCHEMA:
         {
-            "total_cost": "Estimated cost in ${currency}",
-            "optimized_route_order": ["City 1", "City 2"],
-            "itinerary": [
+            "trip_summary": "Brief summary of the route",
+            "segments": [
                 {
-                    "day": 1,
-                    "city": "City Name",
-                    "theme": "Theme",
-                    "image_keyword": "City Landmark Name",
-                    "activities": [
-                        { "time": "Morning", "activity": "Activity", "cost": "Price", "image_keyword": "Specific Place Name" },
-                        { "time": "Afternoon", "activity": "Activity", "cost": "Price", "image_keyword": "Specific Place Name" },
-                        { "time": "Evening", "activity": "Activity", "cost": "Price", "image_keyword": "Specific Place Name" }
+                    "from": "City A",
+                    "to": "City B",
+                    "image_keyword": "City B Landmark",
+                    "transport_comparison": {
+                        "train": {
+                            "name": "Specific Train Name (e.g., Vande Bharat)",
+                            "fare_3ac": "Price",
+                            "fare_2ac": "Price",
+                            "duration": "Time"
+                        },
+                        "flight": {
+                            "practical": true/false,
+                            "details": "Direct or 1-stop",
+                            "fare": "Price",
+                            "duration": "Flight time + 2hr Check-in"
+                        },
+                        "recommendation": "Cheapest or Quickest"
+                    },
+                    "itinerary_days": [
+                        {
+                            "day_number": 1,
+                            "theme": "Theme of day",
+                            "activities": [
+                                { "time": "Morning", "desc": "Activity", "cost": "Price" },
+                                { "time": "Evening", "desc": "Activity", "cost": "Price" }
+                            ]
+                        }
                     ]
                 }
-            ]
+            ],
+            "total_estimated_cost": "Total Price"
         }
         `;
 
@@ -72,3 +94,4 @@ app.post('/api/plan-trip', async (req, res) => {
 });
 
 module.exports = app;
+
