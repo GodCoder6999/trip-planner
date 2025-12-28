@@ -118,7 +118,6 @@
         document.getElementById('singleDest').style.display = mode === 'single' ? 'block' : 'none';
         document.getElementById('multiDest').style.display = mode === 'multi' ? 'block' : 'none';
         
-        // Update button styles
         document.getElementById('btnSingle').style.background = mode === 'single' ? '#2563eb' : '#e2e8f0';
         document.getElementById('btnSingle').style.color = mode === 'single' ? 'white' : '#64748b';
         document.getElementById('btnMulti').style.background = mode === 'multi' ? '#2563eb' : '#e2e8f0';
@@ -156,6 +155,7 @@
         document.getElementById('submitBtn').disabled = true;
 
         try {
+            // This is the key part: connecting to your backend instead of asking for a key
             const res = await fetch('/api/plan-trip', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -173,7 +173,6 @@
             const data = await res.json();
             if (data.error) throw new Error(data.error);
 
-            // Render
             document.getElementById('totalCost').innerText = data.total_cost;
             document.getElementById('itinerary').innerHTML = data.itinerary.map(day => `
                 <div class="day-card">
