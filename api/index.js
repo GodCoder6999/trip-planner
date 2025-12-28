@@ -9,7 +9,6 @@ app.use(express.json());
 
 app.post('/api/plan-trip', async (req, res) => {
     try {
-        // 1. DEBUG: Check if Key Exists
         if (!process.env.OPENROUTER_API_KEY) {
             throw new Error("Missing OPENROUTER_API_KEY in Vercel Environment Variables");
         }
@@ -24,9 +23,8 @@ app.post('/api/plan-trip', async (req, res) => {
         });
 
         const { origin, destination, days, budget, transport, currency } = req.body;
-
-        // 2. MODEL: Use the Free Tier specific model name to be safe
-        // "meta-llama/llama-3.3-70b-instruct:free" is often the free ID on OpenRouter
+        
+        // Use the Free Tier Model
         const modelName = "meta-llama/llama-3.3-70b-instruct:free";
 
         const prompt = `
@@ -38,6 +36,7 @@ app.post('/api/plan-trip', async (req, res) => {
             2. REALITY: Ocean = Flight.
             3. DETAILS: Specific Train/Flight Nos.
             4. FORMAT: Minified JSON. Keys: d, loc, act(t, a, p, i).
+            5. IMPORTANT: Output ONLY JSON. Do not write "Here is the plan".
 
             EXAMPLE OUTPUT:
             {
@@ -56,14 +55,24 @@ app.post('/api/plan-trip', async (req, res) => {
             max_tokens: 1000
         });
 
-        const rawContent = completion.choices[0]?.message?.content || "";
-        const cleanJson = rawContent.replace(/```json/g, '').replace(/```/g, '').trim();
+        let rawContent = completion.choices[0]?.message?.content || "";
+
+        // --- THE FIX: SMART JSON EXTRACTION ---
+        // This finds the first '{' and the last '}' to ignore any text before or after
+        const jsonStartIndex = rawContent.indexOf('{');
+        const jsonEndIndex = rawContent.lastIndexOf('}');
+
+        if (jsonStartIndex === -1 || jsonEndIndex === -1) {
+            throw new Error("AI did not return valid JSON. It returned: " + rawContent.substring(0, 50) + "...");
+        }
+
+        const cleanJson = rawContent.substring(jsonStartIndex, jsonEndIndex + 1);
+        // --------------------------------------
         
         res.json(JSON.parse(cleanJson));
 
     } catch (error) {
-        console.error("Full Error:", error);
-        // SEND THE REAL ERROR TO THE SCREEN
+        console.error("Server Error:", error);
         const errorMessage = error.response?.data?.error?.message || error.message;
         res.status(500).json({ error: `OpenRouter Error: ${errorMessage}` });
     }
