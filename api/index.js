@@ -10,7 +10,7 @@ app.use(express.json());
 app.post('/api/plan-trip', async (req, res) => {
     try {
         if (!process.env.OPENROUTER_API_KEY) {
-            throw new Error("Missing OPENROUTER_API_KEY in Vercel Environment Variables");
+            throw new Error("Missing OPENROUTER_API_KEY");
         }
 
         const openai = new OpenAI({
@@ -24,26 +24,31 @@ app.post('/api/plan-trip', async (req, res) => {
 
         const { origin, destination, days, budget, transport, currency } = req.body;
         
-        // Use the Free Tier Model
+        // Using the Smart 70B Model (Free Tier)
         const modelName = "meta-llama/llama-3.3-70b-instruct:free";
 
         const prompt = `
-            Task: Logistics Plan. ${days} days. ${origin} to ${destination}.
+            Act as a Senior Travel Logistician. Plan a ${days}-DAY trip from ${origin} to ${destination}.
             Mode: ${transport}. Budget: ${budget} ${currency}.
-            
-            RULES:
-            1. GEOGRAPHY: Linear route. No detours.
-            2. REALITY: Ocean = Flight.
-            3. DETAILS: Specific Train/Flight Nos.
-            4. FORMAT: Minified JSON. Keys: d, loc, act(t, a, p, i).
-            5. IMPORTANT: Output ONLY JSON. Do not write "Here is the plan".
 
-            EXAMPLE OUTPUT:
+            STRICT RULES:
+            1. ROUTE LOGIC: Organize cities in a straight geographic line (e.g. East to West). No zig-zagging.
+            2. DAY COUNT: You MUST output exactly ${days} days. Day 1, Day 2, Day 3... up to Day ${days}. Do NOT skip numbers.
+            3. REAL IMAGES: For every activity, provide a search keyword for a REAL photo (e.g. "Varanasi Ghats", "Taj Mahal", "Indian Train").
+            4. FORMAT: Pure JSON.
+
+            OUTPUT JSON STRUCTURE:
             {
-                "cost": "₹15k",
-                "sum": "Direct route.",
+                "cost": "Total Estimate",
+                "sum": "Brief summary of the linear route",
                 "itin": [
-                    { "d": 1, "loc": "Kolkata", "act": [ { "t": "08:00", "a": "Train 12301", "p": "₹3000", "i": "Train" } ] }
+                    { 
+                      "d": 1, 
+                      "loc": "City Name", 
+                      "act": [ 
+                        { "t": "09:00", "a": "Activity Name", "p": "Price", "i": "SearchKeyword" } 
+                      ] 
+                    }
                 ]
             }
         `;
@@ -52,29 +57,23 @@ app.post('/api/plan-trip', async (req, res) => {
             messages: [{ role: "user", content: prompt }],
             model: modelName,
             temperature: 0.1,
-            max_tokens: 1000
+            max_tokens: 2000
         });
 
         let rawContent = completion.choices[0]?.message?.content || "";
-
-        // --- THE FIX: SMART JSON EXTRACTION ---
-        // This finds the first '{' and the last '}' to ignore any text before or after
+        
+        // Cleanup JSON
         const jsonStartIndex = rawContent.indexOf('{');
         const jsonEndIndex = rawContent.lastIndexOf('}');
-
-        if (jsonStartIndex === -1 || jsonEndIndex === -1) {
-            throw new Error("AI did not return valid JSON. It returned: " + rawContent.substring(0, 50) + "...");
-        }
-
-        const cleanJson = rawContent.substring(jsonStartIndex, jsonEndIndex + 1);
-        // --------------------------------------
         
+        if (jsonStartIndex === -1) { throw new Error("AI failed to generate JSON"); }
+        
+        const cleanJson = rawContent.substring(jsonStartIndex, jsonEndIndex + 1);
         res.json(JSON.parse(cleanJson));
 
     } catch (error) {
         console.error("Server Error:", error);
-        const errorMessage = error.response?.data?.error?.message || error.message;
-        res.status(500).json({ error: `OpenRouter Error: ${errorMessage}` });
+        res.status(500).json({ error: error.message || "Failed to generate plan" });
     }
 });
 
