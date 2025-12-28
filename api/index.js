@@ -4,94 +4,71 @@ const cors = require('cors');
 const Groq = require('groq-sdk');
 
 const app = express();
-const port = process.env.PORT || 3000;
-
-// Middleware
-app.use(cors()); // Allow frontend to communicate
+app.use(cors());
 app.use(express.json());
-app.use(express.static('public')); // Serve the HTML file
 
-// Initialize Groq
 const groq = new Groq({
     apiKey: process.env.GROQ_API_KEY
 });
 
-// The API Endpoint
 app.post('/api/plan-trip', async (req, res) => {
     const { origin, destination, days, budget, transport, currency, type } = req.body;
 
-    // Validate Input
-    if (!origin || !destination || !days) {
-        return res.status(400).json({ error: 'Missing required fields' });
-    }
-
     try {
-        // Construct Prompt
-        const details = `Budget: ${budget}. Transport: ${transport}. Currency: ${currency}.`;
-        let userPrompt = "";
+        const systemPrompt = `
+        You are an elite travel logistician.
+        RULES:
+        1. **Route Optimization:** Start at '${origin}'. If the user lists '${origin}' as a destination, SKIP IT (they live there) and go to the next city immediately. Reorder the other cities geographically.
+        2. **Keywords:** For every location, provide a simple "image_keyword" (1-3 words max) for a stock photo search (e.g., "Eiffel Tower", "Taj Mahal", "Pizza").
+        3. **JSON Only:** Return ONLY raw JSON.
+        `;
 
-        if (type === 'single') {
-            userPrompt = `Plan a ${days}-day trip to ${destination} from ${origin}. ${details}`;
-        } else {
-            userPrompt = `Plan a ${days}-day multi-city trip. Start: ${origin}. Stops: ${destination}. Optimize route. ${details}`;
-        }
-
-        const schema = {
-            "total_cost": `Total approx cost in ${currency}`,
+        const userPrompt = `
+        Plan a ${days}-day trip.
+        Start: ${origin}
+        Destinations: ${destination}
+        Budget: ${budget}
+        Transport: ${transport}
+        Currency: ${currency}
+        
+        Schema:
+        {
+            "total_cost": "Estimated cost in ${currency}",
+            "optimized_route_order": ["City 1", "City 2"],
             "itinerary": [
                 {
                     "day": 1,
-                    "location": "City Name",
-                    "theme": "Theme of the day",
+                    "city": "City Name",
+                    "theme": "Theme",
+                    "image_keyword": "City Landmark Name",
                     "activities": [
-                        { "time": "Morning", "activity": "Activity details", "cost": `Cost in ${currency}` },
-                        { "time": "Afternoon", "activity": "Activity details", "cost": `Cost in ${currency}` },
-                        { "time": "Evening", "activity": "Activity details", "cost": `Cost in ${currency}` }
+                        { "time": "Morning", "activity": "Activity", "cost": "Price", "image_keyword": "Specific Place Name" },
+                        { "time": "Afternoon", "activity": "Activity", "cost": "Price", "image_keyword": "Specific Place Name" },
+                        { "time": "Evening", "activity": "Activity", "cost": "Price", "image_keyword": "Specific Place Name" }
                     ]
                 }
             ]
-        };
-
-        const systemPrompt = `
-            You are a helpful travel assistant. 
-            You must return strictly valid JSON data. 
-            Do not include any markdown formatting like \`\`\`json. 
-            Just the raw JSON object.
-            Follow this schema structure exactly: ${JSON.stringify(schema)}
+        }
         `;
 
-        // Call Groq Llama 3.1
         const chatCompletion = await groq.chat.completions.create({
             "messages": [
                 { "role": "system", "content": systemPrompt },
                 { "role": "user", "content": userPrompt }
             ],
             "model": "llama-3.1-8b-instant",
-            "temperature": 0.5,
-            "max_tokens": 2048,
-            "top_p": 1,
-            "stop": null,
-            "stream": false
+            "temperature": 0.2,
+            "max_tokens": 4096,
+            "response_format": { type: "json_object" }
         });
 
-        // Parse Response
-        const aiContent = chatCompletion.choices[0]?.message?.content || "";
-        
-        // Clean up if AI adds markdown despite instructions
-        const cleanJson = aiContent.replace(/```json/g, '').replace(/```/g, '').trim();
-        
-        const tripData = JSON.parse(cleanJson);
+        const tripData = JSON.parse(chatCompletion.choices[0].message.content);
         res.json(tripData);
 
     } catch (error) {
         console.error("AI Error:", error);
-        res.status(500).json({ error: "Failed to generate itinerary. Try again." });
+        res.status(500).json({ error: "Failed to generate plan." });
     }
 });
 
-// Start Server
-app.listen(port, () => {
-    console.log(`Server running on port ${port}`);
-});
-
-module.exports = app; // For Vercel
+module.exports = app;
