@@ -3,96 +3,131 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rail vs Air - Smart Planner</title>
+    <title>WanderLust AI - Premium Planner</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
-        :root { --primary: #0f172a; --accent: #3b82f6; --bg: #f8fafc; --text: #334155; }
-        body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; padding: 20px; line-height: 1.6; }
-        .container { max-width: 900px; margin: 0 auto; }
-        
-        /* Header */
-        header { text-align: center; margin-bottom: 40px; }
-        h1 { color: var(--primary); margin: 0; font-size: 2.5rem; }
-        .subtitle { color: #64748b; font-size: 1.1rem; margin-top: 10px; }
-        
-        /* Form Card */
-        .search-box { background: white; padding: 30px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .full { grid-column: span 2; }
-        
-        label { display: block; font-size: 0.85rem; font-weight: 600; color: #64748b; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.05em; }
-        input, select { width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 1rem; box-sizing: border-box; transition: 0.2s; }
-        input:focus, select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
-        
-        /* Buttons */
-        .btn-primary { 
-            background: var(--primary); color: white; width: 100%; padding: 16px; 
-            border: none; border-radius: 8px; font-size: 1.1rem; font-weight: 700; cursor: pointer; 
-            margin-top: 20px; transition: 0.2s;
+        :root {
+            --primary: #2563eb;
+            --accent: #f59e0b;
+            --dark: #0f172a;
+            --light: #f8fafc;
+            --glass: rgba(255, 255, 255, 0.95);
         }
-        .btn-primary:hover { background: var(--accent); }
-        .btn-primary:disabled { opacity: 0.7; cursor: wait; }
 
-        /* Results */
-        #results { display: none; margin-top: 40px; }
-        .trip-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 20px; padding-bottom: 20px; border-bottom: 2px solid #e2e8f0; }
-        .total-price { font-size: 2rem; font-weight: 800; color: var(--accent); }
-        
-        .day-card { 
-            background: white; border-radius: 12px; overflow: hidden; margin-bottom: 30px; 
-            box-shadow: 0 4px 6px rgba(0,0,0,0.02); border: 1px solid #f1f5f9;
+        body {
+            background: linear-gradient(135deg, #e0f2fe 0%, #f0f9ff 100%);
+            color: var(--dark);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            margin: 0;
+            padding: 40px 20px;
+            min-height: 100vh;
         }
-        .day-header { 
-            background: var(--primary); color: white; padding: 15px 25px; 
+
+        .container { max-width: 1000px; margin: 0 auto; }
+
+        /* Header Design */
+        header { text-align: center; margin-bottom: 50px; animation: fadeIn 1s ease; }
+        h1 { 
+            font-size: 3rem; margin: 0; letter-spacing: -1px; 
+            background: linear-gradient(to right, #2563eb, #3b82f6);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .tagline { color: #64748b; font-size: 1.2rem; margin-top: 10px; font-weight: 500; }
+
+        /* Glassmorphism Form */
+        .search-panel {
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            padding: 40px;
+            border-radius: 24px;
+            box-shadow: 0 20px 40px -10px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255,255,255,0.5);
+            animation: slideUp 0.8s ease;
+        }
+
+        .grid-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 25px; }
+        
+        label { display: block; font-size: 0.85rem; font-weight: 800; color: #64748b; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
+        input, select {
+            width: 100%; padding: 16px; border: 2px solid #e2e8f0; border-radius: 12px;
+            font-size: 1rem; font-family: inherit; font-weight: 600; color: var(--dark);
+            transition: all 0.3s ease; box-sizing: border-box;
+        }
+        input:focus, select:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 0 4px rgba(37,99,235,0.1); }
+
+        .btn-submit {
+            background: var(--primary); color: white; width: 100%; padding: 18px;
+            border: none; border-radius: 12px; font-size: 1.1rem; font-weight: 800;
+            cursor: pointer; margin-top: 30px; transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 10px 20px -5px rgba(37,99,235,0.3); }
+
+        /* Results Section */
+        #results { display: none; margin-top: 50px; }
+        
+        .trip-summary-card {
+            background: var(--dark); color: white; padding: 30px; border-radius: 20px;
+            margin-bottom: 40px; display: flex; justify-content: space-between; align-items: center;
+            box-shadow: 0 20px 40px rgba(15,23,42,0.15);
+        }
+        .total-price { font-size: 2.5rem; font-weight: 800; color: #4ade80; }
+
+        .day-card {
+            background: white; border-radius: 16px; margin-bottom: 30px; overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); border: 1px solid #f1f5f9;
+            animation: fadeIn 0.5s ease forwards; opacity: 0;
+        }
+        .day-header {
+            background: #f8fafc; padding: 20px 30px; border-bottom: 1px solid #e2e8f0;
             display: flex; justify-content: space-between; align-items: center;
         }
-        .day-content { padding: 25px; display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
-        
-        .activity-list { list-style: none; padding: 0; margin: 0; }
-        .activity-item { display: flex; gap: 15px; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px dashed #e2e8f0; }
-        .time { font-weight: 700; color: var(--accent); min-width: 80px; }
-        .details { flex-grow: 1; }
-        .cost { font-weight: 700; color: #10b981; }
+        .day-title { font-size: 1.3rem; font-weight: 800; color: var(--dark); }
+        .day-theme { background: #dbeafe; color: var(--primary); padding: 6px 15px; border-radius: 20px; font-size: 0.85rem; font-weight: 700; }
 
-        .city-image { 
-            width: 100%; height: 100%; object-fit: cover; border-radius: 8px; min-height: 150px; background: #eee;
+        .activity-row {
+            display: flex; padding: 20px 30px; border-bottom: 1px solid #f1f5f9;
+            align-items: center; transition: background 0.2s;
         }
+        .activity-row:last-child { border-bottom: none; }
+        .activity-row:hover { background: #f8fafc; }
+        
+        .time-badge { font-weight: 700; color: #94a3b8; min-width: 80px; }
+        .icon { font-size: 1.5rem; margin-right: 20px; }
+        .details { flex-grow: 1; }
+        .activity-name { font-weight: 600; display: block; margin-bottom: 4px; }
+        .price-tag { font-weight: 800; color: var(--accent); background: #fffbeb; padding: 4px 10px; border-radius: 8px; font-size: 0.9rem; }
 
-        /* Loading */
-        .loader { display: none; text-align: center; padding: 40px; }
-        .spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--accent); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 20px; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        /* Loader */
+        .loader { display: none; text-align: center; padding: 50px; }
+        .spinner { width: 50px; height: 50px; border: 5px solid #e2e8f0; border-top-color: var(--primary); border-radius: 50%; animation: spin 1s infinite linear; margin: 0 auto 20px; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
 <div class="container">
     <header>
-        <h1>⚡ Rail vs Air</h1>
-        <p class="subtitle">The Intelligent Comparison Engine</p>
+        <h1>WanderLust AI</h1>
+        <p class="tagline">Professional Multi-City Logistics Planner</p>
     </header>
 
-    <div class="search-box">
+    <div class="search-panel">
         <form id="tripForm">
-            <div class="grid">
+            <div class="grid-form">
                 <div>
-                    <label>Start</label>
-                    <input type="text" id="origin" placeholder="e.g. Kolkata" required>
+                    <label>Origin City</label>
+                    <input type="text" id="origin" placeholder="e.g. Mumbai" required>
                 </div>
                 <div>
-                    <label>Destinations (Comma separated)</label>
-                    <input type="text" id="dest" placeholder="e.g. Varanasi, Delhi" required>
+                    <label>Destinations</label>
+                    <input type="text" id="dest" placeholder="e.g. Goa, Kerala" required>
                 </div>
                 <div>
                     <label>Duration</label>
-                    <input type="number" id="days" value="5" min="1" max="30">
-                </div>
-                <div>
-                    <label>Budget</label>
-                    <select id="budget">
-                        <option>Budget-friendly</option>
-                        <option>Moderate</option>
-                        <option>Luxury</option>
-                    </select>
+                    <input type="number" id="days" value="5" min="1" max="10">
                 </div>
                 <div>
                     <label>Currency</label>
@@ -103,28 +138,37 @@
                     </select>
                 </div>
                 <div>
-                    <label>Preferred Mode</label>
+                    <label>Budget Level</label>
+                    <select id="budget">
+                        <option>Standard</option>
+                        <option>Luxury</option>
+                        <option>Backpacker</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Transport</label>
                     <select id="transport">
-                        <option>Train</option>
                         <option>Flight</option>
-                        <option>Mixed</option>
+                        <option>Train</option>
+                        <option>Private Car</option>
                     </select>
                 </div>
             </div>
-            <button type="submit" id="submitBtn" class="btn-primary">Compare Routes & Plan Trip</button>
+            <button type="submit" id="submitBtn" class="btn-submit">✨ Generate Professional Itinerary</button>
         </form>
     </div>
 
     <div id="loading" class="loader">
         <div class="spinner"></div>
-        <p>Analyzing logistics, checking schedules, and optimizing route...</p>
+        <h3 style="color:var(--primary)">Contacting Travel Providers...</h3>
+        <p style="color:#64748b">Finding exact trains, flights, and current fares.</p>
     </div>
 
     <div id="results">
-        <div class="trip-header">
+        <div class="trip-summary-card">
             <div>
-                <h2 style="margin:0">Optimized Itinerary</h2>
-                <p id="routeSummary" style="color:#64748b; margin:5px 0 0 0"></p>
+                <h2 style="margin:0; font-size:1.5rem;">Trip Overview</h2>
+                <p id="summaryText" style="margin:5px 0 0 0; opacity:0.8;"></p>
             </div>
             <div class="total-price" id="totalCost"></div>
         </div>
@@ -133,28 +177,18 @@
 </div>
 
 <script>
-    // Helper to get a random image for a city
-    function getCityImage(keyword) {
-        if (!keyword) return 'https://via.placeholder.com/400x300?text=Travel';
-        const cleanKeyword = keyword.split(' ')[0].replace(/[^a-zA-Z]/g, '');
-        // Using loremflickr directly
-        return `https://loremflickr.com/500/350/${cleanKeyword},landmark/all`;
-    }
-
     document.getElementById('tripForm').addEventListener('submit', async (e) => {
         e.preventDefault();
-        
         const btn = document.getElementById('submitBtn');
         const loader = document.getElementById('loading');
         const results = document.getElementById('results');
-        
-        // UI Reset
+
         btn.disabled = true;
+        btn.innerHTML = "Planning...";
         loader.style.display = 'block';
         results.style.display = 'none';
 
         try {
-            // Call the Vercel Backend
             const res = await fetch('/api/plan-trip', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -164,50 +198,40 @@
                     days: document.getElementById('days').value,
                     budget: document.getElementById('budget').value,
                     transport: document.getElementById('transport').value,
-                    currency: document.getElementById('currency').value,
-                    type: 'multi' // Always defaulting to multi-logic for this smart engine
+                    currency: document.getElementById('currency').value
                 })
             });
 
             const data = await res.json();
             if (data.error) throw new Error(data.error);
 
-            // Render Header
-            document.getElementById('totalCost').innerText = data.total_cost || "Price Calculated";
-            
-            // Render Route Summary (if your backend provides it, otherwise calculate from array)
-            const cities = data.itinerary.map(d => d.location.split('->')[1] || d.location).join(' → ');
-            document.getElementById('routeSummary').innerText = `Route: ${cities}`;
+            // Populate Data
+            document.getElementById('totalCost').innerText = data.total_cost;
+            document.getElementById('summaryText').innerText = data.trip_summary;
 
-            // Render Days
+            // Generate Day Cards with Animation Delays
             const container = document.getElementById('itineraryList');
-            container.innerHTML = data.itinerary.map(day => `
-                <div class="day-card">
+            container.innerHTML = data.itinerary.map((day, index) => `
+                <div class="day-card" style="animation-delay: ${index * 0.2}s">
                     <div class="day-header">
-                        <h3 style="margin:0">Day ${day.day}: ${day.location}</h3>
-                        <span style="background:rgba(255,255,255,0.2); padding:5px 10px; border-radius:20px; font-size:0.9em;">
-                            ${day.theme}
-                        </span>
+                        <div class="day-title">Day ${day.day}: ${day.location}</div>
+                        <div class="day-theme">${day.theme}</div>
                     </div>
-                    <div class="day-content">
-                        <ul class="activity-list">
-                            ${day.activities.map(act => `
-                                <li class="activity-item">
-                                    <div class="time">${act.time}</div>
-                                    <div class="details">
-                                        <strong>${act.activity}</strong>
-                                    </div>
-                                    <div class="cost">${act.cost}</div>
-                                </li>
-                            `).join('')}
-                        </ul>
-                        <div>
-                             <img src="${getCityImage(day.location)}" class="city-image" alt="City view" onerror="this.src='https://via.placeholder.com/400?text=City'">
-                        </div>
+                    <div>
+                        ${day.activities.map(act => `
+                            <div class="activity-row">
+                                <div class="time-badge">${act.time}</div>
+                                <div class="icon">${act.icon || '📍'}</div>
+                                <div class="details">
+                                    <span class="activity-name">${act.activity}</span>
+                                </div>
+                                <div class="price-tag">${act.price}</div>
+                            </div>
+                        `).join('')}
                     </div>
                 </div>
             `).join('');
-            
+
             results.style.display = 'block';
 
         } catch (err) {
@@ -215,6 +239,7 @@
         } finally {
             loader.style.display = 'none';
             btn.disabled = false;
+            btn.innerHTML = "✨ Generate Professional Itinerary";
         }
     });
 </script>
