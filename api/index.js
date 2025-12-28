@@ -19,49 +19,48 @@ app.post('/api/plan-trip', async (req, res) => {
 
         const { origin, destination, days, budget, transport, mode } = req.body;
         
-        // --- PROMPT LOGIC BASED ON BUTTON CLICKED ---
+        // --- BUTTON LOGIC ---
         let specificInstruction = "";
-        
         if (mode === 'suggestion') {
-            specificInstruction = `
-            IGNORE the user's requested ${days} days. 
-            Instead, calculate the PERFECT duration for this trip and plan for that number of days. 
-            Tell the user why you chose this duration in the summary.`;
+            specificInstruction = `IGNORE user's ${days} days. Calculate the PERFECT duration.`;
         } else if (mode === 'alternate') {
-            specificInstruction = `
-            Plan a DIFFERENT route than the standard one. 
-            Try to use different stopover cities (e.g. if standard is via Varanasi, go via Lucknow or Jaipur instead). 
-            Keep the duration to ${days} days.`;
+            specificInstruction = `Plan a DIFFERENT route than standard. Use alternative stopovers.`;
         } else {
             specificInstruction = `Plan exactly for ${days} days.`;
         }
 
         const prompt = `
-            Act as a Senior Indian Railways & Flight Logistics Expert. 
-            Plan a trip from ${origin} to ${destination}.
+            Act as a Senior Travel Expert. Plan a trip from ${origin} to ${destination}.
             Mode: ${transport}. Budget: ${budget}.
             
             INSTRUCTIONS:
             ${specificInstruction}
 
             STRICT RULES:
-            1. TIMES: You MUST include specific departure/arrival times for trains/flights (e.g. "06:00 AM").
-            2. REALISM: Use real train numbers (e.g. 12301 Rajdhani) and realistic prices in Rupees (₹).
-            3. LOGIC: Ensure the route is geographically linear.
-            4. IMAGES: Single keyword for photos.
+            1. TIMES: Include specific times (e.g. "06:00 AM").
+            2. REALISM: Use real train numbers (e.g. 12301) and prices (₹).
+            3. LOGIC: Geographic linear route.
+            4. EXTRAS: For every major city visited, list 2 "Most Popular" spots and 2 "Underrated/Hidden" gems.
             5. FORMAT: JSON ONLY.
 
             OUTPUT JSON STRUCTURE:
             {
                 "cost": "₹ Total",
-                "sum": "Summary explanation",
+                "sum": "Summary",
                 "itin": [
                     { 
                         "d": 1, 
                         "loc": "City Name", 
                         "act": [ 
-                            { "t": "09:00 AM", "a": "Activity/Transport Details", "p": "₹500", "i": "Keyword" } 
+                            { "t": "09:00 AM", "a": "Activity", "p": "₹500", "i": "Keyword" } 
                         ] 
+                    }
+                ],
+                "extras": [
+                    {
+                        "city": "City Name",
+                        "pop": ["Taj Mahal", "Agra Fort"],
+                        "hidden": ["Mehtab Bagh (Sunset view)", "Sheroes Hangout Cafe"]
                     }
                 ]
             }
@@ -71,7 +70,7 @@ app.post('/api/plan-trip', async (req, res) => {
             messages: [{ role: "user", content: prompt }],
             model: "meta-llama/llama-3.3-70b-instruct:free",
             temperature: 0.2,
-            max_tokens: 2500
+            max_tokens: 3000
         });
 
         let raw = completion.choices[0]?.message?.content || "";
