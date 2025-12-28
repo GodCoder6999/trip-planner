@@ -3,104 +3,367 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Travel God AI</title>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700&display=swap" rel="stylesheet">
+    <title>AI Travel Planner</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700;900&display=swap" rel="stylesheet">
     <style>
-        :root { --dark: #1a1a1a; --neon: #00f2ff; --card: #ffffff; }
-        
-        body { background: #f0f2f5; font-family: 'Space Grotesk', sans-serif; margin: 0; padding: 20px; color: var(--dark); }
-        .container { max-width: 800px; margin: 0 auto; }
+        :root {
+            --glass: rgba(255, 255, 255, 0.85);
+            --glass-border: rgba(255, 255, 255, 0.5);
+            --primary: #2563eb;
+            --accent: #f43f5e;
+            --dark: #0f172a;
+        }
+
+        /* 1. ANIMATED COLORFUL BACKGROUND */
+        body {
+            margin: 0;
+            padding: 40px 20px;
+            font-family: 'Outfit', sans-serif;
+            color: var(--dark);
+            min-height: 100vh;
+            background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            overflow-x: hidden; /* Prevent scrollbar from flying planes */
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 10; /* Keeps content above the flying animations */
+        }
 
         /* Header */
-        header { text-align: center; margin-bottom: 40px; }
-        h1 { font-size: 3rem; margin: 0; letter-spacing: -2px; }
-        
-        /* Form */
-        .glass-panel {
-            background: rgba(255,255,255,0.9); backdrop-filter: blur(10px);
-            padding: 30px; border-radius: 20px; border: 1px solid #fff;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        header { text-align: center; margin-bottom: 50px; }
+        h1 { 
+            font-size: 3.5rem; 
+            margin: 0; 
+            font-weight: 900; 
+            color: white;
+            text-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            letter-spacing: -1px;
         }
-        .input-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
+        .tagline { 
+            color: rgba(255,255,255,0.9); 
+            font-size: 1.2rem; 
+            margin-top: 10px; 
+            font-weight: 500; 
+        }
+
+        /* Glassmorphism Form Card */
+        .search-panel {
+            background: var(--glass);
+            backdrop-filter: blur(12px);
+            padding: 40px;
+            border-radius: 24px;
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 20px 40px -5px rgba(0,0,0,0.1);
+        }
+
+        .grid-form { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
+            gap: 25px; 
+        }
+        
+        label { 
+            font-size: 0.85rem; 
+            font-weight: 700; 
+            color: #64748b; 
+            text-transform: uppercase; 
+            letter-spacing: 1px; 
+            margin-bottom: 8px; 
+            display: block; 
+        }
         
         input, select {
-            width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px;
-            font-family: inherit; font-weight: 700; box-sizing: border-box;
+            width: 100%; 
+            padding: 16px; 
+            border: 2px solid #e2e8f0; 
+            border-radius: 14px;
+            font-size: 1rem; 
+            font-weight: 600; 
+            box-sizing: border-box; 
+            transition: 0.3s;
+            background: rgba(255,255,255,0.9);
         }
-        
-        button {
-            width: 100%; background: #000; color: #fff; padding: 15px;
-            border: none; border-radius: 10px; font-weight: 700; cursor: pointer;
-            margin-top: 20px; font-size: 1.1rem;
+        input:focus, select:focus { 
+            border-color: var(--primary); 
+            outline: none; 
+            box-shadow: 0 0 0 4px rgba(37,99,235,0.1); 
         }
-        button:hover { background: #333; }
 
-        /* Results */
-        #results { display: none; margin-top: 40px; }
-        .summary-banner { background: #000; color: #fff; padding: 20px; border-radius: 15px; margin-bottom: 30px; }
-        
-        .day-block { margin-bottom: 30px; }
-        .day-header { font-size: 1.5rem; font-weight: 700; margin-bottom: 15px; border-left: 5px solid var(--neon); padding-left: 15px; }
-        
-        .activity-row {
-            display: flex; background: #fff; padding: 15px; margin-bottom: 10px;
-            border-radius: 12px; align-items: center; gap: 15px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+        .btn-submit {
+            background: var(--dark); 
+            color: white; 
+            width: 100%; 
+            padding: 22px;
+            border: none; 
+            border-radius: 16px; 
+            font-size: 1.2rem; 
+            font-weight: 700;
+            cursor: pointer; 
+            margin-top: 35px; 
+            transition: transform 0.2s, box-shadow 0.2s;
         }
-        .act-img { width: 60px; height: 60px; border-radius: 8px; object-fit: cover; background: #eee; }
-        .act-time { font-weight: 700; color: #666; font-size: 0.9rem; min-width: 60px; }
-        .act-desc { flex: 1; font-weight: 600; }
-        .act-price { font-weight: 700; color: #00a86b; background: #e6fcf5; padding: 5px 10px; border-radius: 6px; }
+        .btn-submit:hover { 
+            transform: translateY(-3px); 
+            box-shadow: 0 15px 30px rgba(0,0,0,0.2); 
+            background: black;
+        }
+
+        /* Results Area */
+        #results { display: none; margin-top: 50px; }
+        
+        .summary-box {
+            background: rgba(255,255,255,0.95);
+            padding: 30px; 
+            border-radius: 20px;
+            margin-bottom: 40px; 
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        }
+        .total-price { 
+            font-size: 3.5rem; 
+            font-weight: 900; 
+            color: var(--primary); 
+            line-height: 1;
+        }
+        .trip-desc { 
+            font-size: 1.2rem; 
+            color: #475569; 
+            margin-top: 10px; 
+        }
+
+        /* Day Cards */
+        .day-block { 
+            background: rgba(255,255,255,0.9); 
+            backdrop-filter: blur(10px);
+            border-radius: 20px; 
+            margin-bottom: 30px; 
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+        .day-header { 
+            background: var(--dark); 
+            color: white; 
+            padding: 20px 30px; 
+            font-size: 1.3rem; 
+            font-weight: 700; 
+        }
+
+        .activity-row {
+            display: flex; 
+            padding: 25px; 
+            border-bottom: 1px solid #f1f5f9;
+            align-items: center; 
+            gap: 20px;
+            transition: background 0.2s;
+        }
+        .activity-row:hover { background: rgba(255,255,255,0.8); }
+        .activity-row:last-child { border-bottom: none; }
+
+        .act-img { 
+            width: 90px; 
+            height: 90px; 
+            border-radius: 12px; 
+            object-fit: cover; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .act-time { 
+            font-weight: 700; 
+            color: #94a3b8; 
+            font-size: 0.9rem; 
+            min-width: 70px; 
+        }
+        .act-desc { 
+            flex: 1; 
+            font-weight: 600; 
+            font-size: 1.1rem; 
+            color: var(--dark); 
+        }
+        .act-price { 
+            font-weight: 800; 
+            color: var(--primary); 
+            background: #dbeafe; 
+            padding: 8px 15px; 
+            border-radius: 10px; 
+        }
 
         /* Loader */
-        .loader { display: none; text-align: center; padding: 50px; }
+        .loader { display: none; text-align: center; padding: 60px; }
+        .spinner { 
+            width: 60px; height: 60px; 
+            border: 6px solid rgba(255,255,255,0.3); 
+            border-top-color: white; 
+            border-radius: 50%; 
+            animation: spin 1s infinite linear; 
+            margin: 0 auto 20px; 
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* --- 2. THE FLYING ANIMATIONS (Background Layer) --- */
+        #animation-layer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none; /* Allows clicking through them */
+            z-index: 1; /* Behind content but above background */
+            overflow: hidden;
+        }
+
+        /* Plane Animation */
+        .plane-anim {
+            position: absolute;
+            font-size: 100px; /* Big Plane */
+            opacity: 0.15; /* Subtle visibility */
+            top: 20%;
+            left: -150px;
+            animation: flyPlane 15s linear infinite;
+        }
+        @keyframes flyPlane {
+            0% { transform: translateX(-200px) translateY(0) rotate(5deg); }
+            50% { transform: translateX(50vw) translateY(-50px) rotate(10deg); }
+            100% { transform: translateX(100vw) translateY(20px) rotate(5deg); }
+        }
+
+        /* Train Animation */
+        .train-anim {
+            position: absolute;
+            font-size: 80px;
+            opacity: 0.15;
+            bottom: 20px;
+            left: -150px;
+            animation: driveTrain 20s linear infinite;
+        }
+        @keyframes driveTrain {
+            0% { transform: translateX(-200px); }
+            100% { transform: translateX(110vw); }
+        }
+
+        /* Helper for Mixed Mode (Delay second elements) */
+        .delay-5 { animation-delay: 5s; }
+
+        @media (max-width: 600px) {
+            h1 { font-size: 2.5rem; }
+            .activity-row { flex-direction: column; align-items: flex-start; }
+            .act-img { width: 100%; height: 150px; margin-bottom: 10px; }
+            .act-price { align-self: flex-start; margin-top: 10px; }
+        }
     </style>
 </head>
 <body>
 
+<div id="animation-layer"></div>
+
 <div class="container">
     <header>
-        <h1>TRAVEL GOD AI</h1>
-        <p>Ultra-Fast. High-Precision.</p>
+        <h1>AI Travel Planner</h1>
+        <p class="tagline">Your intelligent architect for perfect journeys.</p>
     </header>
 
-    <div class="glass-panel">
+    <div class="search-panel">
         <form id="tripForm">
-            <div class="input-grid">
-                <input type="text" id="origin" placeholder="Origin (e.g. Kolkata)" required>
-                <input type="text" id="dest" placeholder="Destinations (e.g. Varanasi, Delhi)" required>
-                <input type="number" id="days" value="5" placeholder="Days">
-                <select id="transport">
-                    <option>Train</option><option>Flight</option><option>Mixed</option>
-                </select>
-                <select id="budget"><option>Moderate</option><option>Luxury</option><option>Budget</option></select>
-                <select id="currency"><option>INR (₹)</option><option>USD ($)</option></select>
+            <div class="grid-form">
+                <div>
+                    <label>Origin</label>
+                    <input type="text" id="origin" placeholder="e.g. Kolkata" required>
+                </div>
+                <div>
+                    <label>Destination</label>
+                    <input type="text" id="dest" placeholder="e.g. Delhi, Varanasi" required>
+                </div>
+                <div>
+                    <label>Duration (Days)</label>
+                    <input type="number" id="days" value="5" min="1" max="15">
+                </div>
+                <div>
+                    <label>Budget</label>
+                    <select id="budget">
+                        <option>Budget-Friendly</option>
+                        <option>Moderate</option>
+                        <option>Luxury</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Currency</label>
+                    <select id="currency">
+                        <option value="INR">INR (₹)</option>
+                        <option value="USD">USD ($)</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Transport Mode</label>
+                    <select id="transport">
+                        <option value="Train">Train</option>
+                        <option value="Flight">Flight</option>
+                        <option value="Mixed">Mixed (Best Option)</option>
+                    </select>
+                </div>
             </div>
-            <button type="submit" id="submitBtn">GENERATE ITINERARY</button>
+            <button type="submit" id="submitBtn" class="btn-submit">Generate Itinerary ✈️</button>
         </form>
     </div>
 
-    <div id="loading" class="loader">Generating optimized route...</div>
+    <div id="loading" class="loader">
+        <div class="spinner"></div>
+        <h3 style="color:white; text-shadow:0 2px 4px rgba(0,0,0,0.2)">Calculating Logistics...</h3>
+    </div>
 
     <div id="results">
-        <div class="summary-banner">
-            <h2 id="totalCost" style="margin:0"></h2>
-            <p id="tripSum" style="margin:5px 0 0 0; opacity:0.8"></p>
+        <div class="summary-box">
+            <div class="total-price" id="totalCost"></div>
+            <p class="trip-desc" id="summaryText"></p>
         </div>
         <div id="itineraryList"></div>
     </div>
 </div>
 
 <script>
+    function triggerAnimations(mode) {
+        const layer = document.getElementById('animation-layer');
+        layer.innerHTML = ''; // Clear previous
+
+        if (mode === 'Flight' || mode === 'Mixed') {
+            // Add Plane
+            layer.innerHTML += `<div class="plane-anim">✈️</div>`;
+            // Add a second plane with delay if mixed
+            if(mode === 'Flight') layer.innerHTML += `<div class="plane-anim delay-5" style="top:40%">🛫</div>`;
+        }
+
+        if (mode === 'Train' || mode === 'Mixed') {
+            // Add Train
+            layer.innerHTML += `<div class="train-anim">🚂</div>`;
+            if(mode === 'Train') layer.innerHTML += `<div class="train-anim delay-5" style="bottom: 120px">🚆</div>`;
+        }
+    }
+
     document.getElementById('tripForm').addEventListener('submit', async (e) => {
         e.preventDefault();
+        
         const btn = document.getElementById('submitBtn');
         const loader = document.getElementById('loading');
         const results = document.getElementById('results');
+        const transportMode = document.getElementById('transport').value;
 
-        btn.disabled = true; loader.style.display = 'block'; results.style.display = 'none';
+        // 1. Trigger the Visuals immediately!
+        triggerAnimations(transportMode);
+
+        btn.disabled = true;
+        loader.style.display = 'block';
+        results.style.display = 'none';
 
         try {
+            // Fetch from Backend
             const res = await fetch('/api/plan-trip', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -109,7 +372,7 @@
                     destination: document.getElementById('dest').value,
                     days: document.getElementById('days').value,
                     budget: document.getElementById('budget').value,
-                    transport: document.getElementById('transport').value,
+                    transport: transportMode,
                     currency: document.getElementById('currency').value
                 })
             });
@@ -117,30 +380,38 @@
             const data = await res.json();
             if (data.error) throw new Error(data.error);
 
-            // MAPPING THE COMPRESSED DATA BACK TO HTML
+            // Render Results
             document.getElementById('totalCost').innerText = data.cost;
-            document.getElementById('tripSum').innerText = data.sum;
+            document.getElementById('summaryText').innerText = data.sum;
 
             document.getElementById('itineraryList').innerHTML = data.itin.map(d => `
                 <div class="day-block">
                     <div class="day-header">Day ${d.d}: ${d.loc}</div>
-                    ${d.act.map(a => `
+                    ${d.act.map(a => {
+                        // Image Handling using LoremFlickr (Real Photos)
+                        const keyword = a.i ? a.i.replace(/ /g, ',') : 'travel';
+                        const imgUrl = `https://loremflickr.com/300/300/${keyword}/all`;
+                        
+                        return `
                         <div class="activity-row">
-                            <img src="https://image.pollinations.ai/prompt/${encodeURIComponent(a.i || 'travel')}?width=100&height=100&nologo=true" class="act-img" loading="lazy">
+                            <img src="${imgUrl}" class="act-img" loading="lazy" 
+                                 onerror="this.src='https://placehold.co/100?text=Photo'">
                             <div class="act-time">${a.t}</div>
                             <div class="act-desc">${a.a}</div>
                             <div class="act-price">${a.p}</div>
                         </div>
-                    `).join('')}
+                        `;
+                    }).join('')}
                 </div>
             `).join('');
 
             results.style.display = 'block';
 
         } catch (err) {
-            alert("Error: " + err.message);
+            alert(err.message);
         } finally {
-            loader.style.display = 'none'; btn.disabled = false;
+            loader.style.display = 'none';
+            btn.disabled = false;
         }
     });
 </script>
