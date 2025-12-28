@@ -13,40 +13,39 @@ app.post('/api/plan-trip', async (req, res) => {
     const { origin, destination, days, budget, transport, currency } = req.body;
 
     try {
-        // 1. GEOGRAPHY GUARD (Prevent Ocean Trains)
+        // GEOGRAPHY GUARD
         let safeTransport = transport;
-        const overseasKeywords = ["New York", "USA", "UK", "Europe", "Canada", "London", "Australia"];
+        const overseasKeywords = ["New York", "USA", "UK", "Europe", "Canada", "London", "Australia", "Dubai"];
         if (overseasKeywords.some(k => destination.includes(k) || origin.includes(k))) {
             safeTransport = "Flight";
         }
 
         const prompt = `
-            You are an expert Travel Agent. Plan a ${days}-day trip from ${origin} to ${destination}.
+            You are a Luxury Travel Concierge. Plan a ${days}-day trip from ${origin} to ${destination}.
             
-            CRITICAL RULES (Use your High Intelligence):
-            1. GEOGRAPHIC LOGIC: You MUST reorder cities to form a straight line. 
-               - BAD Route: Kolkata -> New Jalpaiguri -> Delhi (This is a detour).
-               - GOOD Route: Kolkata -> Varanasi -> Prayagraj -> Delhi (This is the main line).
-            2. REAL TRAINS ONLY: Use real trains like "Rajdhani (12301)", "Poorva Exp", "Vande Bharat". 
-            3. MODE: ${safeTransport}. (If Ocean involved, force Flight).
-            4. SPEED: Return JSON only. Keep descriptions to 3-5 words max.
-
-            USER INPUT:
-            - Budget: ${budget} ${currency}
-            - Mode: ${safeTransport}
+            RULES FOR "HIGH DETAIL":
+            1. RICH DESCRIPTIONS: Do NOT say "City Tour". Say "Explore the ancient lanes of Varanasi and Kashi Vishwanath Temple".
+            2. FOOD & GEMS: Include specific famous food spots (e.g. "Blue Tokai Cafe", "Kareem's") or hidden gems.
+            3. LOGICAL ROUTE: Arrange cities geographically. (No detours).
+            4. IMAGES: For every activity, provide a short 2-3 word search term for a photo (e.g. "Varanasi Ghats", "Vande Bharat Train").
 
             OUTPUT SCHEMA (JSON ONLY):
             {
-                "total_cost": "Est Total (e.g. ₹15,000)",
-                "trip_summary": "Direct route via Main Line.",
-                "suggestion": { "is_perfect": true, "text": "Good plan." },
+                "total_cost": "₹45,000",
+                "trip_summary": "A cultural immersion journey...",
                 "itinerary": [
                     {
                         "day": 1,
-                        "location": "City",
-                        "theme": "Travel",
+                        "location": "City Name",
+                        "theme": "Theme of the Day",
                         "activities": [
-                            { "time": "16:00", "activity": "Train Name & No", "price": "₹Cost", "icon": "🚆" }
+                            { 
+                                "time": "09:00 AM", 
+                                "activity": "Detailed Description of activity", 
+                                "price": "₹500", 
+                                "icon": "📍",
+                                "img_key": "Search Term" 
+                            }
                         ]
                     }
                 ]
@@ -55,10 +54,9 @@ app.post('/api/plan-trip', async (req, res) => {
 
         const chatCompletion = await groq.chat.completions.create({
             messages: [{ role: "user", content: prompt }],
-            // SWITCHING TO THE BEST MODEL
-            model: "llama-3.3-70b-versatile", 
+            model: "llama-3.3-70b-versatile", // The Smartest Model
             temperature: 0.2,
-            max_tokens: 1024 // Limit output length to prevent Vercel Timeout
+            max_tokens: 1600
         });
 
         const cleanJson = chatCompletion.choices[0]?.message?.content.replace(/```json/g, '').replace(/```/g, '').trim();
@@ -66,7 +64,7 @@ app.post('/api/plan-trip', async (req, res) => {
 
     } catch (error) {
         console.error("Server Error:", error);
-        res.status(500).json({ error: "High-IQ Model timed out. Try reducing days to 5." });
+        res.status(500).json({ error: "Trip too detailed for free tier. Try 5-7 days." });
     }
 });
 
