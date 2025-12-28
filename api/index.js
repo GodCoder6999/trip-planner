@@ -13,58 +13,48 @@ app.post('/api/plan-trip', async (req, res) => {
     const { origin, destination, days, budget, transport, currency } = req.body;
 
     try {
-        // GEOGRAPHY GUARD
+        // 1. HARDCODED GEOGRAPHY CHECK (Saves AI brain power)
         let safeTransport = transport;
-        const overseasKeywords = ["New York", "USA", "UK", "Europe", "Canada", "London", "Australia", "Dubai"];
+        const overseasKeywords = ["USA", "UK", "Europe", "Canada", "Australia", "New York", "London", "Dubai"];
         if (overseasKeywords.some(k => destination.includes(k) || origin.includes(k))) {
             safeTransport = "Flight";
         }
 
+        // 2. THE "GOD MODE" PROMPT (Ultra-Compressed)
         const prompt = `
-            You are a Luxury Travel Concierge. Plan a ${days}-day trip from ${origin} to ${destination}.
+            Task: Logistics Plan. ${days} days. ${origin} to ${destination}.
+            Mode: ${safeTransport}. Budget: ${budget} ${currency}.
             
-            RULES FOR "HIGH DETAIL":
-            1. RICH DESCRIPTIONS: Do NOT say "City Tour". Say "Explore the ancient lanes of Varanasi and Kashi Vishwanath Temple".
-            2. FOOD & GEMS: Include specific famous food spots (e.g. "Blue Tokai Cafe", "Kareem's") or hidden gems.
-            3. LOGICAL ROUTE: Arrange cities geographically. (No detours).
-            4. IMAGES: For every activity, provide a short 2-3 word search term for a photo (e.g. "Varanasi Ghats", "Vande Bharat Train").
+            STRICT RULES:
+            1. GEOGRAPHY: Reorder cities linearly. No detours.
+            2. TRANSPORT: Must include specific Train/Flight No (e.g. "12301 Rajdhani", "6E-505").
+            3. BREVITY: Max 4 words per activity.
+            4. FORMAT: Minified JSON. Use keys: d(day), loc(location), act(activities array -> t(time), a(activity), p(price), i(img_keyword)).
 
-            OUTPUT SCHEMA (JSON ONLY):
+            EXAMPLE OUTPUT:
             {
-                "total_cost": "₹45,000",
-                "trip_summary": "A cultural immersion journey...",
-                "itinerary": [
-                    {
-                        "day": 1,
-                        "location": "City Name",
-                        "theme": "Theme of the Day",
-                        "activities": [
-                            { 
-                                "time": "09:00 AM", 
-                                "activity": "Detailed Description of activity", 
-                                "price": "₹500", 
-                                "icon": "📍",
-                                "img_key": "Search Term" 
-                            }
-                        ]
-                    }
+                "cost": "₹15k",
+                "sum": "Direct route via Rajdhani.",
+                "itin": [
+                    { "d": 1, "loc": "Kolkata", "act": [ { "t": "08:00", "a": "Dep Howrah via 12301 Rajdhani", "p": "₹3000", "i": "Indian Train" } ] }
                 ]
             }
         `;
 
         const chatCompletion = await groq.chat.completions.create({
             messages: [{ role: "user", content: prompt }],
-            model: "llama-3.3-70b-versatile", // The Smartest Model
-            temperature: 0.2,
-            max_tokens: 1600
+            model: "llama-3.1-8b-instant", // Speed Model
+            temperature: 0.1,
+            max_tokens: 1800 
         });
 
-        const cleanJson = chatCompletion.choices[0]?.message?.content.replace(/```json/g, '').replace(/```/g, '').trim();
+        const rawContent = chatCompletion.choices[0]?.message?.content || "";
+        const cleanJson = rawContent.replace(/```json/g, '').replace(/```/g, '').trim();
         res.json(JSON.parse(cleanJson));
 
     } catch (error) {
         console.error("Server Error:", error);
-        res.status(500).json({ error: "Trip too detailed for free tier. Try 5-7 days." });
+        res.status(500).json({ error: "Optimization failed. Try 7 days." });
     }
 });
 
