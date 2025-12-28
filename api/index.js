@@ -17,27 +17,52 @@ app.post('/api/plan-trip', async (req, res) => {
             defaultHeaders: { "HTTP-Referer": "https://travel-planner.vercel.app", "X-Title": "AI Travel Planner" }
         });
 
-        const { origin, destination, days, budget, transport, currency } = req.body;
+        const { origin, destination, days, budget, transport, mode } = req.body;
         
+        // --- PROMPT LOGIC BASED ON BUTTON CLICKED ---
+        let specificInstruction = "";
+        
+        if (mode === 'suggestion') {
+            specificInstruction = `
+            IGNORE the user's requested ${days} days. 
+            Instead, calculate the PERFECT duration for this trip and plan for that number of days. 
+            Tell the user why you chose this duration in the summary.`;
+        } else if (mode === 'alternate') {
+            specificInstruction = `
+            Plan a DIFFERENT route than the standard one. 
+            Try to use different stopover cities (e.g. if standard is via Varanasi, go via Lucknow or Jaipur instead). 
+            Keep the duration to ${days} days.`;
+        } else {
+            specificInstruction = `Plan exactly for ${days} days.`;
+        }
+
         const prompt = `
-            Act as a Senior Indian Railways Logistics Expert. Plan a ${days}-DAY trip from ${origin} to ${destination}.
-            Mode: ${transport}. Budget: ${budget} ${currency}.
+            Act as a Senior Indian Railways & Flight Logistics Expert. 
+            Plan a trip from ${origin} to ${destination}.
+            Mode: ${transport}. Budget: ${budget}.
+            
+            INSTRUCTIONS:
+            ${specificInstruction}
 
             STRICT RULES:
-            1. RAILWAY ACCURACY: You MUST use real, existing train numbers.
-               - PREFER: Rajdhani (12301/12302), Shatabdi (12003/12004), Vande Bharat, Poorva Exp (12303).
-               - DO NOT invent trains. If unsure, use the most famous connection between these cities.
-            2. ROUTE LOGIC: Linear direction only. No zig-zagging.
-            3. DAY SEQUENCE: Output exactly Day 1 to Day ${days}.
-            4. IMAGES: Single word keyword for photos (e.g. "Train", "Ghats", "Fort").
+            1. TIMES: You MUST include specific departure/arrival times for trains/flights (e.g. "06:00 AM").
+            2. REALISM: Use real train numbers (e.g. 12301 Rajdhani) and realistic prices in Rupees (₹).
+            3. LOGIC: Ensure the route is geographically linear.
+            4. IMAGES: Single keyword for photos.
             5. FORMAT: JSON ONLY.
 
-            OUTPUT JSON:
+            OUTPUT JSON STRUCTURE:
             {
-                "cost": "Total Cost",
-                "sum": "Summary of route",
+                "cost": "₹ Total",
+                "sum": "Summary explanation",
                 "itin": [
-                    { "d": 1, "loc": "City", "act": [ { "t": "09:00", "a": "Train 12301 Rajdhani Exp (Dep Howrah)", "p": "₹3000", "i": "Train" } ] }
+                    { 
+                        "d": 1, 
+                        "loc": "City Name", 
+                        "act": [ 
+                            { "t": "09:00 AM", "a": "Activity/Transport Details", "p": "₹500", "i": "Keyword" } 
+                        ] 
+                    }
                 ]
             }
         `;
@@ -45,20 +70,21 @@ app.post('/api/plan-trip', async (req, res) => {
         const completion = await openai.chat.completions.create({
             messages: [{ role: "user", content: prompt }],
             model: "meta-llama/llama-3.3-70b-instruct:free",
-            temperature: 0.1,
-            max_tokens: 2000
+            temperature: 0.2,
+            max_tokens: 2500
         });
 
         let raw = completion.choices[0]?.message?.content || "";
         const jsonStart = raw.indexOf('{');
         const jsonEnd = raw.lastIndexOf('}');
-        if (jsonStart === -1) throw new Error("AI Error");
+        
+        if (jsonStart === -1) throw new Error("AI failed to generate plan.");
         
         res.json(JSON.parse(raw.substring(jsonStart, jsonEnd + 1)));
 
     } catch (error) {
         console.error("Error:", error);
-        res.status(500).json({ error: "Failed to plan. Please try again." });
+        res.status(500).json({ error: error.message || "Failed to plan." });
     }
 });
 
