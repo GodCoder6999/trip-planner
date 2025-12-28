@@ -13,29 +13,42 @@ app.post('/api/plan-trip', async (req, res) => {
     const { origin, destination, days, budget, transport, currency } = req.body;
 
     try {
+        // 1. CREATE STRICT TRANSPORT RULES
+        let transportRule = "";
+        if (transport === "Train Only") {
+            transportRule = "STRICTLY TRAIN ONLY. Do NOT suggest flights under any circumstances. If a train route is long, still use the train.";
+        } else if (transport === "Flight Only") {
+            transportRule = "STRICTLY FLIGHT ONLY. Do NOT suggest trains. Use flights for all inter-city travel.";
+        } else {
+            transportRule = "Mix of Flights and Trains based on efficiency and cost.";
+        }
+
         const prompt = `
             Act as a senior travel logistics manager. Plan a ${days}-day trip from "${origin}" to "${destination}".
             
-            STRICT REQUIREMENTS:
-            1. REALISM: You MUST provide specific transport names. 
-               - If Flight: Use format "IndiGo 6E-204" or "Air India AI-405".
-               - If Train: Use format "Vande Bharat Exp (22436)" or "Rajdhani Exp (12301)".
-            2. COSTS: Every single activity and transport must have a specific price in ${currency}.
-            3. TOTAL COST: Calculate a realistic total at the end.
-            4. RETURN TRIP: The final day must include the return journey to ${origin} with specific transport details.
+            RULES:
+            1. TRANSPORT MODE: ${transportRule}
+            2. REALISM: Use specific names (e.g., "Vande Bharat Exp", "IndiGo 6E-554").
+            3. COSTS: specific price in ${currency} for every item.
+            4. RETURN TRIP: Final day must include return to ${origin}.
+            5. ADVICE: Analyze if ${days} days is enough. If not, suggest the IDEAL duration.
 
             Return ONLY raw JSON matching this structure:
             {
                 "total_cost": "₹45,000",
-                "trip_summary": "A 5-day cultural immersion...",
+                "trip_summary": "A fast-paced 5-day tour...",
+                "suggestion": {
+                    "is_perfect": false, 
+                    "ideal_days": 7, 
+                    "text": "For a relaxed experience covering all spots, we recommend 7 days." 
+                },
                 "itinerary": [
                     {
                         "day": 1,
                         "location": "Origin -> City",
-                        "theme": "Travel & Check-in",
+                        "theme": "Travel",
                         "activities": [
-                            { "time": "08:00 AM", "activity": "Depart via [Transport Name]", "price": "₹1,200", "icon": "✈️/🚆" },
-                            { "time": "02:00 PM", "activity": "Check-in at [Hotel Area]", "price": "₹0", "icon": "🏨" }
+                            { "time": "08:00 AM", "activity": "Depart via [Transport Name]", "price": "₹1,200", "icon": "🚆" }
                         ]
                     }
                 ]
@@ -45,7 +58,7 @@ app.post('/api/plan-trip', async (req, res) => {
         const chatCompletion = await groq.chat.completions.create({
             messages: [{ role: "user", content: prompt }],
             model: "llama-3.1-8b-instant",
-            temperature: 0.2
+            temperature: 0.1 // Very strict
         });
 
         const cleanJson = chatCompletion.choices[0]?.message?.content.replace(/```json/g, '').replace(/```/g, '').trim();
@@ -53,7 +66,7 @@ app.post('/api/plan-trip', async (req, res) => {
 
     } catch (error) {
         console.error("AI Error:", error);
-        res.status(500).json({ error: "Failed to generate plan. Please try again." });
+        res.status(500).json({ error: "Failed to plan. Please try a shorter duration or check API key." });
     }
 });
 
