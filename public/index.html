@@ -3,55 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Travel Comparison Engine</title>
+    <title>Rail vs Air - Smart Planner</title>
     <style>
-        :root { --primary: #0f172a; --accent: #3b82f6; --bg: #f1f5f9; --train: #16a34a; --flight: #ea580c; }
-        body { background: var(--bg); color: var(--primary); font-family: 'Segoe UI', sans-serif; padding: 20px; }
+        :root { --primary: #0f172a; --accent: #3b82f6; --bg: #f8fafc; --text: #334155; }
+        body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; padding: 20px; line-height: 1.6; }
         .container { max-width: 900px; margin: 0 auto; }
         
         /* Header */
         header { text-align: center; margin-bottom: 40px; }
-        header h1 { font-size: 2.5em; margin-bottom: 10px; background: -webkit-linear-gradient(#3b82f6, #8b5cf6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        h1 { color: var(--primary); margin: 0; font-size: 2.5rem; }
+        .subtitle { color: #64748b; font-size: 1.1rem; margin-top: 10px; }
         
-        /* Input Form */
-        .form-section { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
-        input, select { width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; box-sizing: border-box; }
-        #submitBtn { width: 100%; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s; }
-        #submitBtn:hover { background: #334155; }
-
-        /* Comparison Logic Styling */
-        .segment-card { background: white; border-radius: 16px; margin-bottom: 40px; overflow: hidden; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
+        /* Form Card */
+        .search-box { background: white; padding: 30px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .full { grid-column: span 2; }
         
-        .segment-header { position: relative; height: 200px; }
-        .city-img { width: 100%; height: 100%; object-fit: cover; }
-        .segment-title { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(0,0,0,0.8)); color: white; padding: 20px; }
-        .segment-title h2 { margin: 0; font-size: 1.8em; }
-
-        /* The VS Battle Table */
-        .comparison-box { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; padding: 20px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; }
+        label { display: block; font-size: 0.85rem; font-weight: 600; color: #64748b; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.05em; }
+        input, select { width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 1rem; box-sizing: border-box; transition: 0.2s; }
+        input:focus, select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
         
-        .option-card { background: white; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; position: relative; }
-        .option-card.train { border-left: 5px solid var(--train); }
-        .option-card.flight { border-left: 5px solid var(--flight); }
+        /* Buttons */
+        .btn-primary { 
+            background: var(--primary); color: white; width: 100%; padding: 16px; 
+            border: none; border-radius: 8px; font-size: 1.1rem; font-weight: 700; cursor: pointer; 
+            margin-top: 20px; transition: 0.2s;
+        }
+        .btn-primary:hover { background: var(--accent); }
+        .btn-primary:disabled { opacity: 0.7; cursor: wait; }
 
-        .option-header { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; font-weight: bold; font-size: 1.1em; }
-        .icon { font-size: 1.2em; }
+        /* Results */
+        #results { display: none; margin-top: 40px; }
+        .trip-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 20px; padding-bottom: 20px; border-bottom: 2px solid #e2e8f0; }
+        .total-price { font-size: 2rem; font-weight: 800; color: var(--accent); }
         
-        .badge { position: absolute; top: 10px; right: 10px; font-size: 0.75em; padding: 4px 8px; border-radius: 4px; color: white; font-weight: bold; }
-        .badge.cheap { background: var(--train); }
-        .badge.fast { background: var(--flight); }
+        .day-card { 
+            background: white; border-radius: 12px; overflow: hidden; margin-bottom: 30px; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.02); border: 1px solid #f1f5f9;
+        }
+        .day-header { 
+            background: var(--primary); color: white; padding: 15px 25px; 
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .day-content { padding: 25px; display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
+        
+        .activity-list { list-style: none; padding: 0; margin: 0; }
+        .activity-item { display: flex; gap: 15px; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px dashed #e2e8f0; }
+        .time { font-weight: 700; color: var(--accent); min-width: 80px; }
+        .details { flex-grow: 1; }
+        .cost { font-weight: 700; color: #10b981; }
 
-        .detail-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.9em; color: #64748b; }
-        .detail-val { color: var(--primary); font-weight: 600; }
+        .city-image { 
+            width: 100%; height: 100%; object-fit: cover; border-radius: 8px; min-height: 150px; background: #eee;
+        }
 
-        /* Itinerary Styling */
-        .itinerary-section { padding: 20px; }
-        .day-block { margin-bottom: 15px; padding-left: 15px; border-left: 3px solid #cbd5e1; }
-        .day-title { font-weight: bold; color: var(--accent); margin-bottom: 10px; }
-        .activity-item { display: flex; justify-content: space-between; font-size: 0.95em; margin-bottom: 5px; }
-
-        .loading { display: none; text-align: center; padding: 40px; color: #64748b; }
+        /* Loading */
+        .loader { display: none; text-align: center; padding: 40px; }
+        .spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--accent); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 20px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
@@ -59,190 +68,146 @@
 <div class="container">
     <header>
         <h1>⚡ Rail vs Air</h1>
-        <p>The Intelligent Comparison Engine</p>
+        <p class="subtitle">The Intelligent Comparison Engine</p>
     </header>
 
-    <div class="form-section">
+    <div class="search-box">
         <form id="tripForm">
-            <div class="form-grid">
-                <input type="text" id="origin" placeholder="Start: Kolkata" required>
-                <input type="text" id="destination" placeholder="Destinations: Varanasi, Delhi" required>
-                <input type="number" id="days" value="5" placeholder="Days">
-                <select id="budget">
-                    <option>Budget-friendly</option>
-                    <option>Moderate</option>
-                    <option>Luxury</option>
-                </select>
-                <select id="currency">
-                    <option value="INR">INR (₹)</option>
-                    <option value="USD">USD ($)</option>
-                </select>
+            <div class="grid">
+                <div>
+                    <label>Start</label>
+                    <input type="text" id="origin" placeholder="e.g. Kolkata" required>
+                </div>
+                <div>
+                    <label>Destinations (Comma separated)</label>
+                    <input type="text" id="dest" placeholder="e.g. Varanasi, Delhi" required>
+                </div>
+                <div>
+                    <label>Duration</label>
+                    <input type="number" id="days" value="5" min="1" max="30">
+                </div>
+                <div>
+                    <label>Budget</label>
+                    <select id="budget">
+                        <option>Budget-friendly</option>
+                        <option>Moderate</option>
+                        <option>Luxury</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Currency</label>
+                    <select id="currency">
+                        <option value="INR">INR (₹)</option>
+                        <option value="USD">USD ($)</option>
+                        <option value="EUR">EUR (€)</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Preferred Mode</label>
+                    <select id="transport">
+                        <option>Train</option>
+                        <option>Flight</option>
+                        <option>Mixed</option>
+                    </select>
+                </div>
             </div>
-            <button type="submit" id="submitBtn">Compare Routes & Plan Trip</button>
+            <button type="submit" id="submitBtn" class="btn-primary">Compare Routes & Plan Trip</button>
         </form>
     </div>
 
-    <div class="loading" id="loading">✨ Analyzing 140+ Train Routes and Flight paths...</div>
+    <div id="loading" class="loader">
+        <div class="spinner"></div>
+        <p>Analyzing logistics, checking schedules, and optimizing route...</p>
+    </div>
 
-    <div id="results"></div>
+    <div id="results">
+        <div class="trip-header">
+            <div>
+                <h2 style="margin:0">Optimized Itinerary</h2>
+                <p id="routeSummary" style="color:#64748b; margin:5px 0 0 0"></p>
+            </div>
+            <div class="total-price" id="totalCost"></div>
+        </div>
+        <div id="itineraryList"></div>
+    </div>
 </div>
 
 <script>
-    const getImg = (keyword) => `https://loremflickr.com/800/400/${keyword.split(' ')[0]},travel?random=${Math.random()}`;
+    // Helper to get a random image for a city
+    function getCityImage(keyword) {
+        if (!keyword) return 'https://via.placeholder.com/400x300?text=Travel';
+        const cleanKeyword = keyword.split(' ')[0].replace(/[^a-zA-Z]/g, '');
+        // Using loremflickr directly
+        return `https://loremflickr.com/500/350/${cleanKeyword},landmark/all`;
+    }
 
     document.getElementById('tripForm').addEventListener('submit', async (e) => {
         e.preventDefault();
+        
         const btn = document.getElementById('submitBtn');
         const loader = document.getElementById('loading');
         const results = document.getElementById('results');
         
-        btn.disabled = true;
-        loader.style.display = 'block';
-        results.innerHTML = '';
-
-        try {
-            const res = await fetch('/api/plan-trip', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    origin: document.getElementById('origin').value,
-                    destination: document.getElementById('destination').value,
-                    days: document.getElementById('days').value,
-                    budget: document.getElementById('budget').value,
-                    currency: document.getElementById('currency').value
-                })
-            });
-
-            const data = await res.json();
-            
-            // Render Segments
-            if (data.segments) {
-                results.innerHTML = data.segments.map(seg => {
-                    const t = seg.transport_comparison.train;
-                    const f = seg.transport_comparison.flight;
-                    
-                    return `
-                    <div class="segment-card">
-                        <div class="segment-header">
-                            <img src="${getImg(seg.image_keyword)}" class="city-img">
-                            <div class="segment-title">
-                                <h2>${seg.from} ➔ ${seg.to}</h2>
-                            </div>
-                        </div>
-
-                        <div class="comparison-box">
-                            <div class="option-card train">
-                                <span class="badge cheap">Option A: The Rail Experience</span>
-                                <div class="option-header"><span class="icon">🚆</span> ${t.name}</div>
-                                <div class="detail-row"><span>3AC Fare</span> <span class="detail-val">${t.fare_3ac}</span></div>
-                                <div class="detail-row"><span>2AC Fare</span> <span class="detail-val">${t.fare_2ac}</span></div>
-                                <div class="detail-row"><span>Time</span> <span class="detail-val">${t.duration}</span></div>
-                            </div>
-
-                            <div class="option-card flight">
-                                <span class="badge fast">Option B: The Air Shortcut</span>
-                                <div class="option-header"><span class="icon">✈️</span> ${f.practical ? 'Flight' : 'Not Recommended'}</div>
-                                ${f.practical ? `
-                                    <div class="detail-row"><span>Type</span> <span class="detail-val">${f.details}</span></div>
-                                    <div class="detail-row"><span>Fare</span> <span class="detail-val">${f.fare}</span></div>
-                                    <div class="detail-row"><span>Total Time</span> <span class="detail-val">${f.duration}</span></div>
-                                ` : `<p style="color:#64748b; font-size:0.9em;">Distance < 400km. Rail/Road is faster.</p>`}
-                            </div>
-                        </div>
-
-                        <div class="itinerary-section">
-                            ${seg.itinerary_days.map(day => `
-                                <div class="day-block">
-                                    <div class="day-title">Day ${day.day_number}: ${day.theme}</div>
-                                    ${day.activities.map(act => `
-                                        <div class="activity-item">
-                                            <span>${act.time}: ${act.desc}</span>
-                                            <strong>${act.cost}</strong>
-                                        </div>
-                                    `).join('')}
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                `}).join('');
-            }
-
-        } catch (err) {
-            alert(err.message);
-        } finally {
-            loader.style.display = 'none';
-            btn.disabled = false;
-        }
-    });
-</script>
-</body>
-</html>
-        const cleanKeyword = keyword.split(' ')[0]; // Use first word for better hits
-        return `https://loremflickr.com/800/400/${cleanKeyword},travel,landmark?random=${Math.random()}`;
-    };
-
-    document.getElementById('tripForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const btn = document.getElementById('submitBtn');
-        const loader = document.getElementById('loading');
-        const results = document.getElementById('results');
-        
+        // UI Reset
         btn.disabled = true;
         loader.style.display = 'block';
         results.style.display = 'none';
 
         try {
+            // Call the Vercel Backend
             const res = await fetch('/api/plan-trip', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     origin: document.getElementById('origin').value,
-                    destination: document.getElementById('destination').value,
+                    destination: document.getElementById('dest').value,
                     days: document.getElementById('days').value,
                     budget: document.getElementById('budget').value,
                     transport: document.getElementById('transport').value,
                     currency: document.getElementById('currency').value,
-                    type: 'multi'
+                    type: 'multi' // Always defaulting to multi-logic for this smart engine
                 })
             });
 
             const data = await res.json();
             if (data.error) throw new Error(data.error);
 
-            // 1. Show Optimized Route
-            const routeDiv = document.getElementById('routeSummary');
-            if(data.optimized_route_order && data.optimized_route_order.length > 0) {
-                routeDiv.style.display = 'block';
-                routeDiv.innerHTML = `🚀 Optimized Route: ${data.optimized_route_order.join(' ➔ ')}`;
-            } else {
-                routeDiv.style.display = 'none';
-            }
+            // Render Header
+            document.getElementById('totalCost').innerText = data.total_cost || "Price Calculated";
+            
+            // Render Route Summary (if your backend provides it, otherwise calculate from array)
+            const cities = data.itinerary.map(d => d.location.split('->')[1] || d.location).join(' → ');
+            document.getElementById('routeSummary').innerText = `Route: ${cities}`;
 
-            // 2. Render Itinerary
+            // Render Days
             const container = document.getElementById('itineraryList');
             container.innerHTML = data.itinerary.map(day => `
                 <div class="day-card">
-                    <img src="${getRealImg(day.image_keyword)}" class="city-banner" loading="lazy" alt="${day.city}">
                     <div class="day-header">
-                        <h3>Day ${day.day}: ${day.city}</h3>
-                        <p>${day.theme}</p>
+                        <h3 style="margin:0">Day ${day.day}: ${day.location}</h3>
+                        <span style="background:rgba(255,255,255,0.2); padding:5px 10px; border-radius:20px; font-size:0.9em;">
+                            ${day.theme}
+                        </span>
                     </div>
-                    <div class="activities">
-                        ${day.activities.map(act => `
-                            <div class="activity-row">
-                                <img src="${getRealImg(act.image_keyword)}" class="act-img" loading="lazy">
-                                <div class="act-details">
-                                    <span class="time-badge">${act.time}</span>
-                                    <span class="cost-badge">${act.cost}</span>
-                                    <p><strong>${act.activity}</strong></p>
-                                </div>
-                            </div>
-                        `).join('')}
+                    <div class="day-content">
+                        <ul class="activity-list">
+                            ${day.activities.map(act => `
+                                <li class="activity-item">
+                                    <div class="time">${act.time}</div>
+                                    <div class="details">
+                                        <strong>${act.activity}</strong>
+                                    </div>
+                                    <div class="cost">${act.cost}</div>
+                                </li>
+                            `).join('')}
+                        </ul>
+                        <div>
+                             <img src="${getCityImage(day.location)}" class="city-image" alt="City view" onerror="this.src='https://via.placeholder.com/400?text=City'">
+                        </div>
                     </div>
                 </div>
             `).join('');
-
-            document.getElementById('totalCost').innerText = data.total_cost;
+            
             results.style.display = 'block';
 
         } catch (err) {
@@ -253,5 +218,6 @@
         }
     });
 </script>
+
 </body>
 </html>
