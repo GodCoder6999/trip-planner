@@ -12,80 +12,81 @@ const groq = new Groq({
 });
 
 app.post('/api/plan-trip', async (req, res) => {
-    const { origin, destination, days, budget, transport, currency } = req.body;
+    const { origin, destination, days, budget, transport, currency, type } = req.body;
+
+    if (!origin || !destination) {
+        return res.status(400).json({ error: 'Missing origin or destination' });
+    }
 
     try {
-        const systemPrompt = `
-        You are an Intelligent Travel Comparison Engine. 
-        Your goal is to compare "The Rail Experience" vs "The Air Shortcut" for every leg of an Indian trip.
-
-        CORE LOGIC:
-        1. **Route Strategy:** Start at '${origin}'. If '${origin}' is in the destination list, SKIP IT as a destination. Optimize the order of the remaining cities.
-        2. **The Decision Rule:** - If distance < 400km, Flight is "Not Practical".
-           - For long hauls, highlight time savings.
-        3. **Structure:** For every movement between cities (Leg 1, Leg 2...), provide a comparison.
-        4. **Images:** Provide a simple "image_keyword" (e.g., "Varanasi Ghats") for the destination.
-        
-        OUTPUT FORMAT:
-        Return ONLY raw JSON matching this specific schema. No markdown.
+        // 1. CONSTRUCT A HIGH-IQ PROMPT
+        const baseInstruction = `
+            You are an expert travel logistics manager. 
+            Your goal is to plan a ${days}-day trip that starts at "${origin}" and ENDS at "${origin}".
+            
+            CRITICAL RULES:
+            1. REORDER THE DESTINATIONS: If this is a multi-city trip (${destination}), you must re-arrange the order of cities to create the most logical, efficient geographic route. Do not just follow the user's input order if it is inefficient.
+            2. REALISM: Provide SPECIFIC travel details. Do not say "Take a flight". Say "Flight AA123 (Approx $200)" or "Train: Vande Bharat Express (Approx ₹1500)".
+            3. FULL CYCLE: Day 1 starts with travel from ${origin}. The Final Day must include travel back to ${origin}.
+            4. BUDGET: Stick to a ${budget} budget in ${currency}.
+            5. MODE: Prefer ${transport} where possible, but switch if logical (e.g. Flight for oceans, Train for nearby cities).
         `;
 
         const userPrompt = `
-        Plan a trip starting from ${origin} to ${destination}.
-        Total Days: ${days}. Budget: ${budget}. Currency: ${currency}.
-
-        JSON SCHEMA:
-        {
-            "trip_summary": "Brief summary of the route",
-            "segments": [
-                {
-                    "from": "City A",
-                    "to": "City B",
-                    "image_keyword": "City B Landmark",
-                    "transport_comparison": {
-                        "train": {
-                            "name": "Specific Train Name (e.g., Vande Bharat)",
-                            "fare_3ac": "Price",
-                            "fare_2ac": "Price",
-                            "duration": "Time"
-                        },
-                        "flight": {
-                            "practical": true/false,
-                            "details": "Direct or 1-stop",
-                            "fare": "Price",
-                            "duration": "Flight time + 2hr Check-in"
-                        },
-                        "recommendation": "Cheapest or Quickest"
-                    },
-                    "itinerary_days": [
-                        {
-                            "day_number": 1,
-                            "theme": "Theme of day",
-                            "activities": [
-                                { "time": "Morning", "desc": "Activity", "cost": "Price" },
-                                { "time": "Evening", "desc": "Activity", "cost": "Price" }
-                            ]
-                        }
-                    ]
-                }
-            ],
-            "total_estimated_cost": "Total Price"
-        }
+            Plan the itinerary. 
+            Format: Day-by-day breakdown.
+            Include transport names, departure times, and specific fares for every inter-city move.
         `;
 
+        // 2. DEFINE THE SCHEMA (Must match your Frontend keys)
+        const schema = {
+            "total_cost": `Estimated total cost in ${currency} (including travel)`,
+            "itinerary": [
+                {
+                    "day": 1,
+                    "location": "Origin -> First City",
+                    "theme": "Travel & Arrival",
+                    "activities": [
+                        { "time": "08:00 AM", "activity": "Depart ${origin} via [Transport Name/No]", "cost": "Cost" },
+                        { "time": "02:00 PM", "activity": "Check-in and local exploration", "cost": "Cost" },
+                        { "time": "Evening", "activity": "Dinner at [Specific Recommendation]", "cost": "Cost" }
+                    ]
+                },
+                {
+                    "day": "...",
+                    "location": "City Name",
+                    "theme": "Theme",
+                    "activities": []
+                },
+                {
+                    "day": days,
+                    "location": "Last City -> ${origin}",
+                    "theme": "Return Journey",
+                    "activities": [
+                        { "time": "Morning", "activity": "Final souvenir shopping", "cost": "Cost" },
+                        { "time": "Afternoon", "activity": "Depart return to ${origin} via [Transport Name]", "cost": "Cost" },
+                        { "time": "Night", "activity": "Arrive Home", "cost": "0" }
+                    ]
+                }
+            ]
+        };
+
+        // 3. CALL THE AI
         const chatCompletion = await groq.chat.completions.create({
             "messages": [
-                { "role": "system", "content": systemPrompt },
+                { 
+                    "role": "system", 
+                    "content": baseInstruction + `\n Return ONLY raw JSON matching this schema: ${JSON.stringify(schema)}` 
+                },
                 { "role": "user", "content": userPrompt }
             ],
             "model": "llama-3.1-8b-instant",
-            "temperature": 0.2,
-            "max_tokens": 4096,
-            "response_format": { type: "json_object" }
+            "temperature": 0.2, // Lower temperature = More strict/logical routing
+            "max_tokens": 4096
         });
 
-        const tripData = JSON.parse(chatCompletion.choices[0].message.content);
-        res.json(tripData);
+        const cleanJson = chatCompletion.choices[0]?.message?.content.replace(/```json/g, '').replace(/```/g, '').trim();
+        res.json(JSON.parse(cleanJson));
 
     } catch (error) {
         console.error("AI Error:", error);
@@ -94,4 +95,3 @@ app.post('/api/plan-trip', async (req, res) => {
 });
 
 module.exports = app;
-
