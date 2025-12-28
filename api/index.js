@@ -1,120 +1,73 @@
-import Groq from "groq-sdk";
+require('dotenv').config();
+const express = require('express');
+const cors = require('cors');
+const Groq = require('groq-sdk');
 
-const groq = new Groq({
-  apiKey: process.env.GROQ_API_KEY
+const app = express();
+app.use(cors());
+app.use(express.json());
+
+const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+
+app.post('/api/plan-trip', async (req, res) => {
+    const { origin, destination, days, budget, transport, currency } = req.body;
+
+    try {
+        // 1. GEOGRAPHY GUARD (Prevent Ocean Trains)
+        let safeTransport = transport;
+        const overseasKeywords = ["New York", "USA", "UK", "Europe", "Canada", "London", "Australia"];
+        if (overseasKeywords.some(k => destination.includes(k) || origin.includes(k))) {
+            safeTransport = "Flight";
+        }
+
+        const prompt = `
+            You are an expert Travel Agent. Plan a ${days}-day trip from ${origin} to ${destination}.
+            
+            CRITICAL RULES (Use your High Intelligence):
+            1. GEOGRAPHIC LOGIC: You MUST reorder cities to form a straight line. 
+               - BAD Route: Kolkata -> New Jalpaiguri -> Delhi (This is a detour).
+               - GOOD Route: Kolkata -> Varanasi -> Prayagraj -> Delhi (This is the main line).
+            2. REAL TRAINS ONLY: Use real trains like "Rajdhani (12301)", "Poorva Exp", "Vande Bharat". 
+            3. MODE: ${safeTransport}. (If Ocean involved, force Flight).
+            4. SPEED: Return JSON only. Keep descriptions to 3-5 words max.
+
+            USER INPUT:
+            - Budget: ${budget} ${currency}
+            - Mode: ${safeTransport}
+
+            OUTPUT SCHEMA (JSON ONLY):
+            {
+                "total_cost": "Est Total (e.g. ₹15,000)",
+                "trip_summary": "Direct route via Main Line.",
+                "suggestion": { "is_perfect": true, "text": "Good plan." },
+                "itinerary": [
+                    {
+                        "day": 1,
+                        "location": "City",
+                        "theme": "Travel",
+                        "activities": [
+                            { "time": "16:00", "activity": "Train Name & No", "price": "₹Cost", "icon": "🚆" }
+                        ]
+                    }
+                ]
+            }
+        `;
+
+        const chatCompletion = await groq.chat.completions.create({
+            messages: [{ role: "user", content: prompt }],
+            // SWITCHING TO THE BEST MODEL
+            model: "llama-3.3-70b-versatile", 
+            temperature: 0.2,
+            max_tokens: 1024 // Limit output length to prevent Vercel Timeout
+        });
+
+        const cleanJson = chatCompletion.choices[0]?.message?.content.replace(/```json/g, '').replace(/```/g, '').trim();
+        res.json(JSON.parse(cleanJson));
+
+    } catch (error) {
+        console.error("Server Error:", error);
+        res.status(500).json({ error: "High-IQ Model timed out. Try reducing days to 5." });
+    }
 });
 
-export default async function handler(req, res) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "POST requests only" });
-  }
-
-  try {
-    const {
-      origin,
-      destination,
-      days,
-      budget,
-      transport,
-      currency
-    } = req.body;
-
-    if (!origin || !destination || !days) {
-      return res.status(400).json({ error: "Missing required inputs" });
-    }
-
-    /* ============================
-       SYSTEM PROMPT (INTELLIGENCE)
-    ============================= */
-    const systemPrompt = `
-You are a high-precision AI travel planner used in a real production app.
-
-You must:
-- Be realistic and geographically logical
-- Respect transport mode strictly
-- Optimize days vs distance
-- Avoid rushed or tourist-trap plans
-- Stay within the given budget tier
-
-Trip constraints:
-- From: ${origin}
-- To: ${destination}
-- Days: ${days}
-- Budget: ${budget}
-- Transport: ${transport}
-- Currency: ${currency}
-
-Return ONLY valid JSON. No markdown. No commentary.
-`;
-
-    /* ============================
-       USER PROMPT (FORMAT CONTROL)
-    ============================= */
-    const userPrompt = `
-Generate the best possible itinerary.
-
-Return JSON in EXACTLY this structure:
-
-{
-  "total_cost": "string with currency symbol",
-  "trip_summary": "short human-friendly summary",
-  "suggestion": {
-    "is_perfect": boolean,
-    "text": "suggestion if any",
-    "ideal_days": number
-  },
-  "itinerary": [
-    {
-      "day": number,
-      "location": "city or area",
-      "theme": "short theme",
-      "activities": [
-        {
-          "time": "Morning/Afternoon/Evening/Night",
-          "icon": "emoji",
-          "activity": "clear description",
-          "price": "estimated cost"
-        }
-      ]
-    }
-  ]
-}
-
-Rules:
-- If days are insufficient, suggest ideal_days > ${days}
-- If days are optimal, set is_perfect = true
-- Do NOT invent booking links
-- Prices must be realistic for ${currency}
-`;
-
-    const completion = await groq.chat.completions.create({
-      model: "llama-3.1-70b-versatile",
-      temperature: 0.4,
-      max_tokens: 1800,
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userPrompt }
-      ]
-    });
-
-    const raw = completion.choices[0].message.content;
-
-    let parsed;
-    try {
-      parsed = JSON.parse(raw);
-    } catch (err) {
-      return res.status(500).json({
-        error: "Invalid JSON returned by AI",
-        raw
-      });
-    }
-
-    return res.status(200).json(parsed);
-
-  } catch (error) {
-    console.error("Trip planner error:", error);
-    return res.status(500).json({
-      error: "Failed to generate travel plan"
-    });
-  }
-}
+module.exports = app;
