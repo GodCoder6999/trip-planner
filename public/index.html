@@ -3,155 +3,89 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LuxeTravel AI</title>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&display=swap" rel="stylesheet">
+    <title>Travel God AI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        :root { --primary: #0f172a; --accent: #f43f5e; --bg: #f8fafc; }
-
-        body {
-            background: var(--bg); color: #334155;
-            font-family: 'Outfit', sans-serif;
-            margin: 0; padding: 40px 20px;
-        }
-
-        .container { max-width: 900px; margin: 0 auto; }
+        :root { --dark: #1a1a1a; --neon: #00f2ff; --card: #ffffff; }
+        
+        body { background: #f0f2f5; font-family: 'Space Grotesk', sans-serif; margin: 0; padding: 20px; color: var(--dark); }
+        .container { max-width: 800px; margin: 0 auto; }
 
         /* Header */
-        header { text-align: center; margin-bottom: 50px; }
-        h1 { font-size: 3rem; margin: 0; background: linear-gradient(90deg, #0f172a, #334155); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .tagline { color: #64748b; font-size: 1.2rem; margin-top: 10px; }
-
-        /* Form */
-        .search-panel {
-            background: white; padding: 30px; border-radius: 24px;
-            box-shadow: 0 20px 40px -5px rgba(0,0,0,0.05); border: 1px solid #e2e8f0;
-        }
-        .grid-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
+        header { text-align: center; margin-bottom: 40px; }
+        h1 { font-size: 3rem; margin: 0; letter-spacing: -2px; }
         
-        label { font-size: 0.8rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; display: block; }
+        /* Form */
+        .glass-panel {
+            background: rgba(255,255,255,0.9); backdrop-filter: blur(10px);
+            padding: 30px; border-radius: 20px; border: 1px solid #fff;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        }
+        .input-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
+        
         input, select {
-            width: 100%; padding: 16px; border: 2px solid #f1f5f9; border-radius: 12px;
-            font-size: 1rem; font-weight: 600; box-sizing: border-box; transition: 0.3s;
+            width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px;
+            font-family: inherit; font-weight: 700; box-sizing: border-box;
         }
-        input:focus, select:focus { border-color: var(--primary); outline: none; background: #fff; }
-
-        .btn-submit {
-            background: var(--primary); color: white; width: 100%; padding: 20px;
-            border: none; border-radius: 14px; font-size: 1.1rem; font-weight: 700;
-            cursor: pointer; margin-top: 30px; transition: transform 0.2s;
+        
+        button {
+            width: 100%; background: #000; color: #fff; padding: 15px;
+            border: none; border-radius: 10px; font-weight: 700; cursor: pointer;
+            margin-top: 20px; font-size: 1.1rem;
         }
-        .btn-submit:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+        button:hover { background: #333; }
 
         /* Results */
-        #results { display: none; margin-top: 50px; }
+        #results { display: none; margin-top: 40px; }
+        .summary-banner { background: #000; color: #fff; padding: 20px; border-radius: 15px; margin-bottom: 30px; }
         
-        .summary-box {
-            background: var(--primary); color: white; padding: 40px; border-radius: 24px;
-            margin-bottom: 40px; position: relative; overflow: hidden;
-        }
-        .total-price { font-size: 3rem; font-weight: 700; color: #4ade80; }
-        .trip-desc { font-size: 1.1rem; opacity: 0.9; max-width: 80%; line-height: 1.6; }
-
-        /* Day Section */
-        .day-section { margin-bottom: 40px; }
-        .day-title { 
-            font-size: 1.5rem; font-weight: 700; margin-bottom: 20px; 
-            display: flex; align-items: center; gap: 10px; color: var(--primary);
-        }
-        .day-badge { background: #e2e8f0; padding: 5px 15px; border-radius: 20px; font-size: 0.9rem; }
-
-        /* Activity Card (The Big Change) */
-        .activity-card {
-            background: white; border-radius: 16px; overflow: hidden; margin-bottom: 20px;
-            display: grid; grid-template-columns: 150px 1fr; 
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); border: 1px solid #f1f5f9;
-            transition: transform 0.2s;
-        }
-        .activity-card:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); }
-
-        .act-img { 
-            width: 100%; height: 100%; object-fit: cover; background: #eee;
-        }
-        .act-content { padding: 20px; display: flex; flex-direction: column; justify-content: center; }
+        .day-block { margin-bottom: 30px; }
+        .day-header { font-size: 1.5rem; font-weight: 700; margin-bottom: 15px; border-left: 5px solid var(--neon); padding-left: 15px; }
         
-        .act-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-        .act-time { color: var(--accent); font-weight: 700; font-size: 0.9rem; }
-        .act-price { background: #ecfdf5; color: #059669; padding: 4px 10px; border-radius: 8px; font-weight: 700; font-size: 0.85rem; }
-        
-        .act-desc { font-size: 1.05rem; font-weight: 500; color: #475569; line-height: 1.5; }
+        .activity-row {
+            display: flex; background: #fff; padding: 15px; margin-bottom: 10px;
+            border-radius: 12px; align-items: center; gap: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+        }
+        .act-img { width: 60px; height: 60px; border-radius: 8px; object-fit: cover; background: #eee; }
+        .act-time { font-weight: 700; color: #666; font-size: 0.9rem; min-width: 60px; }
+        .act-desc { flex: 1; font-weight: 600; }
+        .act-price { font-weight: 700; color: #00a86b; background: #e6fcf5; padding: 5px 10px; border-radius: 6px; }
 
         /* Loader */
-        .loader { display: none; text-align: center; padding: 60px; }
-        .spinner { width: 50px; height: 50px; border: 5px solid #e2e8f0; border-top-color: var(--primary); border-radius: 50%; animation: spin 1s infinite linear; margin: 0 auto 20px; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-
-        /* Mobile Fix */
-        @media (max-width: 600px) {
-            .activity-card { grid-template-columns: 1fr; grid-template-rows: 150px auto; }
-        }
+        .loader { display: none; text-align: center; padding: 50px; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <header>
-        <h1>LuxeTravel AI</h1>
-        <p class="tagline">Experience the world, planned to perfection.</p>
+        <h1>TRAVEL GOD AI</h1>
+        <p>Ultra-Fast. High-Precision.</p>
     </header>
 
-    <div class="search-panel">
+    <div class="glass-panel">
         <form id="tripForm">
-            <div class="grid-form">
-                <div>
-                    <label>From</label>
-                    <input type="text" id="origin" placeholder="e.g. Kolkata" required>
-                </div>
-                <div>
-                    <label>To</label>
-                    <input type="text" id="dest" placeholder="e.g. Varanasi, Delhi" required>
-                </div>
-                <div>
-                    <label>Duration</label>
-                    <input type="number" id="days" value="5" min="1" max="10">
-                </div>
-                <div>
-                    <label>Budget</label>
-                    <select id="budget">
-                        <option>Moderate</option>
-                        <option>Luxury</option>
-                        <option>Budget-friendly</option>
-                    </select>
-                </div>
-                <div>
-                    <label>Currency</label>
-                    <select id="currency">
-                        <option value="INR">INR (₹)</option>
-                        <option value="USD">USD ($)</option>
-                    </select>
-                </div>
-                <div>
-                    <label>Mode</label>
-                    <select id="transport">
-                        <option>Train</option>
-                        <option>Flight</option>
-                        <option>Mixed</option>
-                    </select>
-                </div>
+            <div class="input-grid">
+                <input type="text" id="origin" placeholder="Origin (e.g. Kolkata)" required>
+                <input type="text" id="dest" placeholder="Destinations (e.g. Varanasi, Delhi)" required>
+                <input type="number" id="days" value="5" placeholder="Days">
+                <select id="transport">
+                    <option>Train</option><option>Flight</option><option>Mixed</option>
+                </select>
+                <select id="budget"><option>Moderate</option><option>Luxury</option><option>Budget</option></select>
+                <select id="currency"><option>INR (₹)</option><option>USD ($)</option></select>
             </div>
-            <button type="submit" id="submitBtn" class="btn-submit">✨ Plan My Luxury Trip</button>
+            <button type="submit" id="submitBtn">GENERATE ITINERARY</button>
         </form>
     </div>
 
-    <div id="loading" class="loader">
-        <div class="spinner"></div>
-        <h3>Curating your experience...</h3>
-        <p style="color:#64748b">Finding hidden gems, best routes, and vivid photos.</p>
-    </div>
+    <div id="loading" class="loader">Generating optimized route...</div>
 
     <div id="results">
-        <div class="summary-box">
-            <div class="total-price" id="totalCost"></div>
-            <p class="trip-desc" id="summaryText"></p>
+        <div class="summary-banner">
+            <h2 id="totalCost" style="margin:0"></h2>
+            <p id="tripSum" style="margin:5px 0 0 0; opacity:0.8"></p>
         </div>
         <div id="itineraryList"></div>
     </div>
@@ -164,9 +98,7 @@
         const loader = document.getElementById('loading');
         const results = document.getElementById('results');
 
-        btn.disabled = true;
-        loader.style.display = 'block';
-        results.style.display = 'none';
+        btn.disabled = true; loader.style.display = 'block'; results.style.display = 'none';
 
         try {
             const res = await fetch('/api/plan-trip', {
@@ -185,49 +117,30 @@
             const data = await res.json();
             if (data.error) throw new Error(data.error);
 
-            // Render Summary
-            document.getElementById('totalCost').innerText = data.total_cost;
-            document.getElementById('summaryText').innerText = data.trip_summary;
+            // MAPPING THE COMPRESSED DATA BACK TO HTML
+            document.getElementById('totalCost').innerText = data.cost;
+            document.getElementById('tripSum').innerText = data.sum;
 
-            // Render Itinerary with Images
-            const container = document.getElementById('itineraryList');
-            container.innerHTML = data.itinerary.map(day => `
-                <div class="day-section">
-                    <div class="day-title">
-                        <span class="day-badge">Day ${day.day}</span> 
-                        ${day.location} 
-                        <span style="font-weight:400; color:#64748b; font-size:1rem; margin-left:auto">${day.theme}</span>
-                    </div>
-                    <div>
-                        ${day.activities.map(act => {
-                            // High Quality Image URL based on keyword
-                            const imgUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(act.img_key)}?width=300&height=300&nologo=true`;
-                            return `
-                                <div class="activity-card">
-                                    <img src="${imgUrl}" class="act-img" loading="lazy" alt="${act.img_key}">
-                                    <div class="act-content">
-                                        <div class="act-header">
-                                            <div class="act-time">${act.time}</div>
-                                            <div class="act-price">${act.price}</div>
-                                        </div>
-                                        <div class="act-desc">
-                                            ${act.icon} ${act.activity}
-                                        </div>
-                                    </div>
-                                </div>
-                            `;
-                        }).join('')}
-                    </div>
+            document.getElementById('itineraryList').innerHTML = data.itin.map(d => `
+                <div class="day-block">
+                    <div class="day-header">Day ${d.d}: ${d.loc}</div>
+                    ${d.act.map(a => `
+                        <div class="activity-row">
+                            <img src="https://image.pollinations.ai/prompt/${encodeURIComponent(a.i || 'travel')}?width=100&height=100&nologo=true" class="act-img" loading="lazy">
+                            <div class="act-time">${a.t}</div>
+                            <div class="act-desc">${a.a}</div>
+                            <div class="act-price">${a.p}</div>
+                        </div>
+                    `).join('')}
                 </div>
             `).join('');
 
             results.style.display = 'block';
 
         } catch (err) {
-            alert(err.message);
+            alert("Error: " + err.message);
         } finally {
-            loader.style.display = 'none';
-            btn.disabled = false;
+            loader.style.display = 'none'; btn.disabled = false;
         }
     });
 </script>
