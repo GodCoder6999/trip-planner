@@ -3,464 +3,264 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Tour Planner - Multi Currency</title>
+    <title>AI Trip Planner</title>
     <style>
-        :root {
-            --primary: #2563eb;
-            --secondary: #1e40af;
-            --accent: #f59e0b;
-            --bg: #f8fafc;
-            --card-bg: #ffffff;
-            --text: #1e293b;
-            --text-light: #64748b;
-        }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-
-        body { background-color: var(--bg); color: var(--text); line-height: 1.6; }
-
-        .container { max-width: 1000px; margin: 0 auto; padding: 20px; }
-
+        :root { --primary: #2563eb; --secondary: #1e40af; --bg: #f8fafc; --text: #1e293b; }
+        body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; padding: 20px; line-height: 1.6; }
+        .container { max-width: 800px; margin: 0 auto; }
+        
         /* Header */
-        header { text-align: center; margin-bottom: 30px; padding: 40px 0; background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
-        header h1 { font-size: 2.5rem; margin-bottom: 10px; }
-
-        /* Tabs */
-        .tabs { display: flex; justify-content: center; margin-bottom: 20px; gap: 10px; }
-        .tab-btn { padding: 12px 25px; border: none; background: #e2e8f0; color: var(--text-light); border-radius: 30px; cursor: pointer; font-weight: 600; transition: all 0.3s; font-size: 1rem; }
-        .tab-btn.active { background: var(--primary); color: white; box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.3); }
-
+        header { text-align: center; margin-bottom: 30px; }
+        header h1 { color: var(--primary); margin-bottom: 5px; }
+        
         /* Form Section */
-        .input-section { background: var(--card-bg); padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); margin-bottom: 30px; }
-        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
+        .form-section { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
         
-        .form-group { display: flex; flex-direction: column; }
-        .form-group label { font-size: 0.9rem; font-weight: 600; margin-bottom: 8px; color: var(--text-light); }
-        .form-group input, .form-group select { padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 1rem; transition: border 0.3s; }
-        .form-group input:focus, .form-group select:focus { outline: none; border-color: var(--primary); }
+        /* Mode Tabs */
+        .tabs { display: flex; justify-content: center; margin-bottom: 25px; gap: 10px; }
+        .tab-btn { padding: 10px 20px; border: none; border-radius: 20px; cursor: pointer; font-weight: 600; background: #e2e8f0; color: #64748b; transition: 0.2s; }
+        .tab-btn.active { background: var(--primary); color: white; }
 
-        /* --- UPDATED MULTI CITY STYLING --- */
-        .multi-input-container { 
-            display: flex; 
-            gap: 8px; 
-            width: 100%;
-        }
+        /* Grid Layout */
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+        .full-width { grid-column: span 2; }
         
-        /* Ensures the input takes up all remaining space */
-        #multiDestInput {
-            flex: 1; 
-        }
+        /* Inputs */
+        label { font-size: 0.9em; font-weight: 600; color: #64748b; display: block; margin-bottom: 5px; }
+        input, select { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0; font-size: 1em; box-sizing: border-box; }
+        input:focus, select:focus { outline: 2px solid var(--primary); border-color: transparent; }
 
-        /* Ensures button is visible, distinct, and doesn't wrap */
+        /* Multi City Specifics */
+        .multi-wrapper { display: flex; gap: 10px; width: 100%; }
+        #cityInput { flex-grow: 1; }
         .btn-add { 
-            background: var(--primary); 
-            color: white; 
-            border: none; 
-            padding: 0 20px; 
-            border-radius: 8px; 
-            cursor: pointer; 
+            background: var(--primary); color: white; border: none; 
+            padding: 0 20px; border-radius: 8px; font-weight: bold; cursor: pointer;
             white-space: nowrap; 
-            font-weight: 600;
-            transition: background 0.3s;
         }
-        .btn-add:hover {
-            background: var(--secondary);
-        }
+        .btn-add:hover { background: var(--secondary); }
 
-        .chip-container { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; min-height: 40px; padding: 10px; border: 1px dashed #e2e8f0; border-radius: 8px; background: #f8fafc; }
-        .chip { background: #e0f2fe; color: var(--primary); padding: 5px 12px; border-radius: 20px; font-size: 0.9rem; display: flex; align-items: center; gap: 8px; border: 1px solid #bae6fd; }
-        .chip span { cursor: pointer; font-weight: bold; color: var(--secondary); display: flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 50%; }
-        .chip span:hover { background: rgba(0,0,0,0.1); }
+        .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; min-height: 30px; }
+        .chip { background: #e0f2fe; color: var(--primary); padding: 5px 12px; border-radius: 15px; font-size: 0.9em; cursor: pointer; display: flex; align-items: center; gap: 5px; }
+        .chip:hover { background: #bae6fd; }
 
-        .api-key-group { margin-top: 20px; padding-top: 20px; border-top: 1px dashed #e2e8f0; }
-        .btn-submit { background-color: var(--primary); color: white; border: none; padding: 15px 30px; font-size: 1.1rem; font-weight: bold; border-radius: 8px; cursor: pointer; margin-top: 25px; width: 100%; transition: background 0.3s; }
-        .btn-submit:hover { background-color: var(--secondary); }
-        .btn-submit:disabled { background-color: #cbd5e1; cursor: not-allowed; }
+        /* Submit Button */
+        #submitBtn { width: 100%; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 8px; font-size: 1.1em; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        #submitBtn:hover { background: var(--secondary); }
+        #submitBtn:disabled { background: #ccc; cursor: not-allowed; }
 
-        /* Loading & Results */
-        .loading { display: none; text-align: center; margin: 40px 0; }
-        .spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 15px; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-        .results-section { display: none; }
-        .trip-header { background: var(--card-bg); padding: 25px; border-radius: 12px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center; border-left: 5px solid var(--accent); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
-        .trip-summary h2 { font-size: 1.8rem; color: var(--primary); }
-        .total-cost { font-size: 1.5rem; font-weight: bold; color: var(--accent); }
-
-        .timeline { position: relative; max-width: 800px; margin: 0 auto; }
-        .timeline::after { content: ''; position: absolute; width: 4px; background-color: #e2e8f0; top: 0; bottom: 0; left: 50%; margin-left: -2px; }
-        .day-card { padding: 10px 40px; position: relative; background-color: inherit; width: 50%; box-sizing: border-box; }
-        .day-card.left { left: 0; text-align: right; }
-        .day-card.right { left: 50%; }
-        .day-content { padding: 20px; background-color: white; position: relative; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
-        .day-badge { position: absolute; top: -15px; background: var(--primary); color: white; padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 0.9rem; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
-        .left .day-badge { right: 20px; }
-        .right .day-badge { left: 20px; }
-        .activity-item { margin-top: 15px; border-bottom: 1px solid #f1f5f9; padding-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
-        .activity-item:last-child { border-bottom: none; }
-        .activity-desc { font-size: 0.95rem; }
-        .activity-cost { font-weight: bold; color: var(--accent); font-size: 0.9rem; margin-left: 10px; min-width: 80px; text-align: right; }
-
-        @media screen and (max-width: 768px) {
-            .timeline::after { left: 31px; }
-            .day-card { width: 100%; padding-left: 70px; padding-right: 25px; }
-            .day-card.left, .day-card.right { left: 0; text-align: left; }
-            .left .day-badge, .right .day-badge { left: 20px; right: auto; }
-        }
+        /* Results */
+        .loading { display: none; text-align: center; margin: 40px; color: var(--primary); font-weight: bold; }
+        .result-box { display: none; margin-top: 30px; }
+        .total-cost { text-align: right; font-size: 1.5em; font-weight: bold; color: #f59e0b; margin-bottom: 20px; }
+        
+        .day-card { background: white; padding: 25px; border-radius: 12px; margin-bottom: 20px; border-left: 5px solid var(--primary); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .day-card h3 { margin-top: 0; color: var(--primary); }
+        .activity { display: flex; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding: 12px 0; }
+        .activity:last-child { border-bottom: none; }
+        .activity-time { font-weight: bold; color: #64748b; min-width: 80px; }
+        .activity-cost { font-weight: bold; color: #f59e0b; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <header>
-        <h1>Global Tour Planner</h1>
-        <p>Plan multi-city trips in your local currency</p>
+        <h1>AI Trip Planner</h1>
+        <p>Your smart travel companion</p>
     </header>
+    
+    <div class="form-section">
+        <div class="tabs">
+            <button onclick="setMode('single')" class="tab-btn active" id="btnSingle">Single City</button>
+            <button onclick="setMode('multi')" class="tab-btn" id="btnMulti">Multi-City</button>
+        </div>
 
-    <div class="tabs">
-        <button class="tab-btn active" onclick="switchTab('single')">Single Destination</button>
-        <button class="tab-btn" onclick="switchTab('multi')">Multi-City Tour</button>
-    </div>
-
-    <div class="input-section">
         <form id="tripForm">
-            <input type="hidden" id="tripType" value="single">
-            
             <div class="form-grid">
-                <div class="form-group">
-                    <label for="origin">Starting Location</label>
-                    <input type="text" id="origin" placeholder="e.g., New York" required>
+                <div>
+                    <label>Starting From</label>
+                    <input type="text" id="origin" placeholder="e.g. New York" required>
+                </div>
+                
+                <div id="singleDest">
+                    <label>Destination</label>
+                    <input type="text" id="dest" placeholder="e.g. Paris">
                 </div>
 
-                <div class="form-group" id="single-dest-group">
-                    <label for="destination">Destination</label>
-                    <input type="text" id="destination" placeholder="e.g., Paris">
-                </div>
-
-                <div class="form-group" id="multi-dest-group" style="display: none;">
-                    <label for="multiDestInput">Destinations</label>
-                    <div class="multi-input-container">
-                        <input type="text" id="multiDestInput" placeholder="Add city..." onkeydown="if(event.key === 'Enter'){event.preventDefault(); addDestination();}">
-                        <button type="button" class="btn-add" onclick="addDestination()">Add +</button>
+                <div id="multiDest" style="display:none;" class="full-width">
+                    <label>Destinations (Add at least 2)</label>
+                    <div class="multi-wrapper">
+                        <input type="text" id="cityInput" placeholder="Type city name...">
+                        <button type="button" class="btn-add" onclick="addCity()">Add +</button>
                     </div>
-                    <div class="chip-container" id="destChips">
-                        <span style="color:#94a3b8; font-size:0.9rem; margin:auto;">No cities added yet</span>
-                    </div>
+                    <div class="chips" id="chips"></div>
                 </div>
 
-                <div class="form-group">
-                    <label for="days">Duration (Days)</label>
-                    <input type="number" id="days" min="1" max="30" value="5" required>
+                <div>
+                    <label>Duration (Days)</label>
+                    <input type="number" id="days" value="5" min="1" max="30" required>
                 </div>
-
-                <div class="form-group">
-                    <label for="currency">Currency</label>
+                <div>
+                    <label>Currency</label>
                     <select id="currency">
                         <option value="USD">USD ($)</option>
                         <option value="EUR">EUR (€)</option>
-                        <option value="GBP">GBP (£)</option>
                         <option value="INR">INR (₹)</option>
-                        <option value="JPY">JPY (¥)</option>
-                        <option value="AUD">AUD (A$)</option>
+                        <option value="GBP">GBP (£)</option>
                     </select>
                 </div>
-
-                <div class="form-group">
-                    <label for="budget">Budget Level</label>
+                <div>
+                    <label>Budget Style</label>
                     <select id="budget">
-                        <option value="Budget-friendly">Budget-friendly</option>
-                        <option value="Moderate" selected>Moderate</option>
-                        <option value="Luxury">Luxury</option>
+                        <option>Moderate</option>
+                        <option>Budget-friendly</option>
+                        <option>Luxury</option>
                     </select>
                 </div>
-                <div class="form-group">
-                    <label for="transport">Preferred Transport</label>
+                <div>
+                    <label>Transport Mode</label>
                     <select id="transport">
-                        <option value="Flight">Flight</option>
-                        <option value="Train">Train</option>
-                        <option value="Bus">Bus</option>
-                        <option value="Car/Drive">Car/Drive</option>
+                        <option>Flight</option>
+                        <option>Train</option>
+                        <option>Bus</option>
+                        <option>Car</option>
                     </select>
                 </div>
             </div>
 
-            <div class="form-group" style="margin-top: 20px;">
-                <label for="mode">AI Engine</label>
-                <select id="mode" onchange="toggleApiKey()">
-                    <option value="demo">Demo Mode (Free Simulation)</option>
-                    <option value="real">Real AI (Gemini API)</option>
-                </select>
-            </div>
-
-            <div class="form-group api-key-group" id="apiKeyContainer" style="display: none;">
-                <label for="apiKey">Gemini API Key</label>
-                <input type="password" id="apiKey" placeholder="Paste key from Google AI Studio">
-            </div>
-
-            <button type="submit" class="btn-submit">Plan My Trip</button>
+            <button type="submit" id="submitBtn">Generate My Plan</button>
         </form>
     </div>
 
     <div class="loading" id="loading">
-        <div class="spinner"></div>
-        <p>Calculating costs and routing...</p>
+        <p>✨ AI is analyzing routes and prices...</p>
     </div>
 
-    <div class="results-section" id="results">
-        <div class="trip-header">
-            <div class="trip-summary">
-                <h2 id="resultTitle">Your Trip</h2>
-                <p id="resultSubtitle">Details here</p>
-            </div>
-            <div class="total-cost" id="totalCost">--</div>
-        </div>
-
-        <div class="timeline" id="timelineContainer"></div>
+    <div class="result-box" id="results">
+        <div class="total-cost" id="totalCost"></div>
+        <div id="itinerary"></div>
     </div>
 </div>
 
 <script>
-    let destinations = [];
-    let currentTab = 'single';
+    let cities = [];
+    let currentMode = 'single';
 
-    // UI Toggles
-    function switchTab(tab) {
-        currentTab = tab;
-        document.getElementById('tripType').value = tab;
-        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-        event.target.classList.add('active');
+    // Toggle between Single and Multi city modes
+    function setMode(mode) {
+        currentMode = mode;
+        
+        // Update UI visibility
+        document.getElementById('singleDest').style.display = mode === 'single' ? 'block' : 'none';
+        document.getElementById('multiDest').style.display = mode === 'multi' ? 'block' : 'none';
+        
+        // Update Tab Styles
+        document.getElementById('btnSingle').className = mode === 'single' ? 'tab-btn active' : 'tab-btn';
+        document.getElementById('btnMulti').className = mode === 'multi' ? 'tab-btn active' : 'tab-btn';
 
-        const singleGroup = document.getElementById('single-dest-group');
-        const multiGroup = document.getElementById('multi-dest-group');
-        const singleInput = document.getElementById('destination');
-
-        if (tab === 'single') {
-            singleGroup.style.display = 'flex';
-            multiGroup.style.display = 'none';
-            singleInput.required = true;
-        } else {
-            singleGroup.style.display = 'none';
-            multiGroup.style.display = 'flex';
-            singleInput.required = false;
-        }
+        // Toggle Required attribute
+        document.getElementById('dest').required = (mode === 'single');
     }
 
-    function addDestination() {
-        const input = document.getElementById('multiDestInput');
+    // Add city to list
+    function addCity() {
+        const input = document.getElementById('cityInput');
         const val = input.value.trim();
-        if (val && !destinations.includes(val)) {
-            destinations.push(val);
+        if (val && !cities.includes(val)) {
+            cities.push(val);
             renderChips();
             input.value = '';
         }
-        input.focus();
     }
 
-    function removeDestination(city) {
-        destinations = destinations.filter(d => d !== city);
-        renderChips();
-    }
-
+    // Render the little city bubbles
     function renderChips() {
-        const container = document.getElementById('destChips');
-        container.innerHTML = destinations.length ? '' : '<span style="color:#94a3b8; font-size:0.9rem; margin:auto;">No cities added yet</span>';
-        destinations.forEach(city => {
-            const chip = document.createElement('div');
-            chip.className = 'chip';
-            chip.innerHTML = `${city} <span onclick="removeDestination('${city}')">&times;</span>`;
-            container.appendChild(chip);
-        });
+        const div = document.getElementById('chips');
+        div.innerHTML = cities.map(c => `
+            <span class="chip" onclick="removeCity('${c}')">
+                ${c} ✕
+            </span>
+        `).join('');
     }
 
-    function toggleApiKey() {
-        const mode = document.getElementById('mode').value;
-        document.getElementById('apiKeyContainer').style.display = mode === 'real' ? 'flex' : 'none';
-    }
+    window.removeCity = (c) => {
+        cities = cities.filter(x => x !== c);
+        renderChips();
+    };
 
-    // MAIN FORM LOGIC
-    document.getElementById('tripForm').addEventListener('submit', async function(e) {
+    // Handle Form Submit
+    document.getElementById('tripForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         
-        if (currentTab === 'multi' && destinations.length < 2) {
-            alert("Please add at least 2 cities for a Multi-City tour.");
+        // Logic to get the correct destination string
+        const dest = currentMode === 'single' ? document.getElementById('dest').value : cities.join(', ');
+        
+        // Basic Validation
+        if (!dest) {
+            alert(currentMode === 'single' ? "Please enter a destination" : "Please add at least 2 cities");
+            return;
+        }
+        if (currentMode === 'multi' && cities.length < 2) {
+            alert("For Multi-City trips, please add at least 2 destinations.");
             return;
         }
 
-        const loading = document.getElementById('loading');
-        const results = document.getElementById('results');
-        const submitBtn = document.querySelector('.btn-submit');
-        
-        loading.style.display = 'block';
-        results.style.display = 'none';
-        submitBtn.disabled = true;
-
-        const inputs = {
-            origin: document.getElementById('origin').value,
-            destination: currentTab === 'single' ? document.getElementById('destination').value : destinations.join(', '),
-            days: document.getElementById('days').value,
-            budget: document.getElementById('budget').value,
-            transport: document.getElementById('transport').value,
-            currency: document.getElementById('currency').value,
-            mode: document.getElementById('mode').value,
-            apiKey: document.getElementById('apiKey').value,
-            type: currentTab
-        };
+        // Show Loading
+        document.getElementById('loading').style.display = 'block';
+        document.getElementById('results').style.display = 'none';
+        document.getElementById('submitBtn').disabled = true;
+        document.getElementById('submitBtn').textContent = "Planning...";
 
         try {
-            let data;
-            if (inputs.mode === 'real') {
-                if (!inputs.apiKey) throw new Error("API Key required for Real AI mode");
-                data = await fetchRealAIPlan(inputs);
-            } else {
-                await new Promise(r => setTimeout(r, 1500));
-                data = generateMockData(inputs);
-            }
-            renderItinerary(data, inputs);
-        } catch (error) {
-            alert("Error: " + error.message);
+            // CALLING YOUR BACKEND
+            const res = await fetch('/api/plan-trip', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    origin: document.getElementById('origin').value,
+                    destination: dest,
+                    days: document.getElementById('days').value,
+                    budget: document.getElementById('budget').value,
+                    transport: document.getElementById('transport').value,
+                    currency: document.getElementById('currency').value,
+                    type: currentMode
+                })
+            });
+
+            const data = await res.json();
+            
+            if (data.error) throw new Error(data.error);
+
+            // Render Results
+            document.getElementById('totalCost').innerText = data.total_cost || "Cost Calculated";
+            
+            document.getElementById('itinerary').innerHTML = data.itinerary.map(day => `
+                <div class="day-card">
+                    <h3>Day ${day.day}: ${day.location ? day.location + ' - ' : ''}${day.theme}</h3>
+                    ${day.activities.map(act => `
+                        <div class="activity">
+                            <div>
+                                <span class="activity-time">${act.time}</span>
+                                <span>${act.activity}</span>
+                            </div>
+                            <span class="activity-cost">${act.cost}</span>
+                        </div>
+                    `).join('')}
+                </div>
+            `).join('');
+            
+            document.getElementById('results').style.display = 'block';
+
+        } catch (err) {
+            console.error(err);
+            alert("Error: " + err.message);
         } finally {
-            loading.style.display = 'none';
-            submitBtn.disabled = false;
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('submitBtn').disabled = false;
+            document.getElementById('submitBtn').textContent = "Generate My Plan";
         }
     });
-
-    // RENDERER
-    function renderItinerary(data, inputs) {
-        document.getElementById('results').style.display = 'block';
-        document.getElementById('resultTitle').textContent = inputs.type === 'single' ? `Trip to ${inputs.destination}` : `Multi-City Tour`;
-        document.getElementById('resultSubtitle').textContent = inputs.type === 'single' 
-            ? `${inputs.days} Days • ${inputs.budget}`
-            : `Route: ${inputs.origin} → ${inputs.destination}`;
-        document.getElementById('totalCost').textContent = data.total_cost;
-
-        const container = document.getElementById('timelineContainer');
-        container.innerHTML = '';
-
-        data.itinerary.forEach((day, index) => {
-            const side = index % 2 === 0 ? 'left' : 'right';
-            let activitiesHtml = '';
-            day.activities.forEach(act => {
-                activitiesHtml += `
-                    <div class="activity-item">
-                        <span class="activity-desc"><strong>${act.time}:</strong> ${act.activity}</span>
-                        <span class="activity-cost">${act.cost}</span>
-                    </div>
-                `;
-            });
-
-            container.innerHTML += `
-                <div class="day-card ${side}">
-                    <div class="day-content">
-                        <div class="day-badge">Day ${day.day}</div>
-                        <h3>${day.location ? day.location + ': ' : ''}${day.theme}</h3>
-                        <div style="margin-top:10px;">${activitiesHtml}</div>
-                    </div>
-                </div>
-            `;
-        });
-    }
-
-    // AI BACKEND
-    async function fetchRealAIPlan(inputs) {
-        let prompt = "";
-        const details = `Budget: ${inputs.budget}. Transport: ${inputs.transport}. Currency: ${inputs.currency}.`;
-        
-        if (inputs.type === 'single') {
-            prompt = `Plan a ${inputs.days}-day trip to ${inputs.destination} from ${inputs.origin}. ${details}`;
-        } else {
-            prompt = `Plan a ${inputs.days}-day multi-city trip. Start: ${inputs.origin}. Stops: ${inputs.destination}. Optimize route. ${details}`;
-        }
-
-        const schema = `
-            {
-                "total_cost": "Total approx cost in ${inputs.currency}",
-                "itinerary": [
-                    {
-                        "day": 1,
-                        "location": "City Name",
-                        "theme": "Theme",
-                        "activities": [
-                            {"time": "Morning", "activity": "Action", "cost": "Cost in ${inputs.currency}"}
-                        ]
-                    }
-                ]
-            }
-        `;
-
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${inputs.apiKey}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                contents: [{ parts: [{ text: prompt + " Return JSON matching this schema: " + schema }] }]
-            })
-        });
-
-        const result = await response.json();
-        if (result.error) throw new Error(result.error.message);
-        let text = result.candidates[0].content.parts[0].text.replace(/```json/g, '').replace(/```/g, '').trim();
-        return JSON.parse(text);
-    }
-
-    // MOCK DATA (DEMO)
-    function generateMockData(inputs) {
-        const currencies = {
-            'USD': { sym: '$', rate: 1 },
-            'EUR': { sym: '€', rate: 0.92 },
-            'GBP': { sym: '£', rate: 0.79 },
-            'INR': { sym: '₹', rate: 83.5 },
-            'JPY': { sym: '¥', rate: 155 },
-            'AUD': { sym: 'A$', rate: 1.5 }
-        };
-        const cur = currencies[inputs.currency] || currencies['USD'];
-        const fmt = (amt) => `${cur.sym}${Math.round(amt * cur.rate)}`;
-
-        const isMulti = inputs.type === 'multi';
-        const cities = isMulti ? destinations : [inputs.destination];
-        let itinerary = [];
-        let cityIndex = 0;
-        let daysPerCity = Math.ceil(inputs.days / cities.length);
-        let runningTotal = 0;
-
-        for (let i = 1; i <= inputs.days; i++) {
-            if (i > 1 && (i - 1) % daysPerCity === 0 && cityIndex < cities.length - 1) {
-                cityIndex++;
-                const travelCost = 150;
-                runningTotal += travelCost;
-                itinerary.push({
-                    day: i,
-                    location: "Transit",
-                    theme: "Travel Day",
-                    activities: [
-                        { time: "Morning", activity: `Check out from ${cities[cityIndex-1]}`, cost: fmt(0) },
-                        { time: "Afternoon", activity: `Travel to ${cities[cityIndex]} via ${inputs.transport}`, cost: fmt(travelCost) },
-                        { time: "Evening", activity: `Check in at ${cities[cityIndex]}`, cost: fmt(0) }
-                    ]
-                });
-                continue;
-            }
-
-            const currentCity = cities[cityIndex];
-            const dailyCost = 115; 
-            runningTotal += dailyCost;
-
-            itinerary.push({
-                day: i,
-                location: currentCity,
-                theme: "Exploration",
-                activities: [
-                    { time: "Morning", activity: `Visit major landmark in ${currentCity}`, cost: fmt(25) },
-                    { time: "Afternoon", activity: "Local lunch & cultural tour", cost: fmt(40) },
-                    { time: "Evening", activity: "Dinner at popular spot", cost: fmt(50) }
-                ]
-            });
-        }
-
-        return {
-            total_cost: `~${fmt(runningTotal + 300)}`,
-            itinerary: itinerary
-        };
-    }
 </script>
-
 </body>
 </html>
