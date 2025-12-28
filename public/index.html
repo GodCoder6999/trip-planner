@@ -3,106 +3,73 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WanderLust AI - Premium Planner</title>
+    <title>Travel Planner - AI Powered</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --primary: #2563eb;
-            --accent: #f59e0b;
-            --dark: #0f172a;
-            --light: #f8fafc;
-            --glass: rgba(255, 255, 255, 0.95);
-        }
+        :root { --primary: #000000; --accent: #2563eb; --bg: #f3f4f6; }
 
         body {
-            background: linear-gradient(135deg, #e0f2fe 0%, #f0f9ff 100%);
-            color: var(--dark);
+            background: var(--bg); color: #1f2937;
             font-family: 'Plus Jakarta Sans', sans-serif;
-            margin: 0;
-            padding: 40px 20px;
-            min-height: 100vh;
+            margin: 0; padding: 40px 20px;
         }
 
-        .container { max-width: 1000px; margin: 0 auto; }
+        .container { max-width: 900px; margin: 0 auto; }
 
-        /* Header Design */
-        header { text-align: center; margin-bottom: 50px; animation: fadeIn 1s ease; }
-        h1 { 
-            font-size: 3rem; margin: 0; letter-spacing: -1px; 
-            background: linear-gradient(to right, #2563eb, #3b82f6);
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-        }
-        .tagline { color: #64748b; font-size: 1.2rem; margin-top: 10px; font-weight: 500; }
+        /* Branding */
+        header { text-align: center; margin-bottom: 40px; }
+        h1 { font-size: 2.8rem; margin: 0; letter-spacing: -1px; }
+        .tagline { color: #6b7280; font-size: 1.1rem; margin-top: 5px; }
 
-        /* Glassmorphism Form */
+        /* Form */
         .search-panel {
-            background: var(--glass);
-            backdrop-filter: blur(20px);
-            padding: 40px;
-            border-radius: 24px;
-            box-shadow: 0 20px 40px -10px rgba(0,0,0,0.1);
-            border: 1px solid rgba(255,255,255,0.5);
-            animation: slideUp 0.8s ease;
+            background: white; padding: 35px; border-radius: 20px;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05);
         }
-
-        .grid-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 25px; }
+        .grid-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
         
-        label { display: block; font-size: 0.85rem; font-weight: 800; color: #64748b; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
+        label { font-size: 0.75rem; font-weight: 800; color: #9ca3af; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; display: block; }
         input, select {
-            width: 100%; padding: 16px; border: 2px solid #e2e8f0; border-radius: 12px;
-            font-size: 1rem; font-family: inherit; font-weight: 600; color: var(--dark);
-            transition: all 0.3s ease; box-sizing: border-box;
+            width: 100%; padding: 14px; border: 2px solid #e5e7eb; border-radius: 10px;
+            font-size: 1rem; font-weight: 600; box-sizing: border-box; transition: 0.2s;
         }
-        input:focus, select:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 0 4px rgba(37,99,235,0.1); }
+        input:focus, select:focus { border-color: var(--primary); outline: none; }
 
         .btn-submit {
             background: var(--primary); color: white; width: 100%; padding: 18px;
-            border: none; border-radius: 12px; font-size: 1.1rem; font-weight: 800;
-            cursor: pointer; margin-top: 30px; transition: transform 0.2s, box-shadow 0.2s;
+            border: none; border-radius: 12px; font-size: 1rem; font-weight: 700;
+            cursor: pointer; margin-top: 30px; transition: transform 0.1s;
         }
-        .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 10px 20px -5px rgba(37,99,235,0.3); }
+        .btn-submit:hover { transform: scale(1.01); }
 
-        /* Results Section */
-        #results { display: none; margin-top: 50px; }
-        
-        .trip-summary-card {
-            background: var(--dark); color: white; padding: 30px; border-radius: 20px;
-            margin-bottom: 40px; display: flex; justify-content: space-between; align-items: center;
-            box-shadow: 0 20px 40px rgba(15,23,42,0.15);
+        /* Recommendation Banner */
+        #suggestionBanner {
+            display: none; background: #eff6ff; border: 1px solid #bfdbfe;
+            padding: 15px 20px; border-radius: 12px; margin-top: 30px;
+            align-items: center; justify-content: space-between;
         }
-        .total-price { font-size: 2.5rem; font-weight: 800; color: #4ade80; }
+        .suggestion-text { color: #1e40af; font-size: 0.95rem; font-weight: 600; }
+        .btn-apply {
+            background: #2563eb; color: white; border: none; padding: 8px 16px;
+            border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 0.85rem;
+        }
 
-        .day-card {
-            background: white; border-radius: 16px; margin-bottom: 30px; overflow: hidden;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); border: 1px solid #f1f5f9;
-            animation: fadeIn 0.5s ease forwards; opacity: 0;
-        }
-        .day-header {
-            background: #f8fafc; padding: 20px 30px; border-bottom: 1px solid #e2e8f0;
-            display: flex; justify-content: space-between; align-items: center;
-        }
-        .day-title { font-size: 1.3rem; font-weight: 800; color: var(--dark); }
-        .day-theme { background: #dbeafe; color: var(--primary); padding: 6px 15px; border-radius: 20px; font-size: 0.85rem; font-weight: 700; }
+        /* Results */
+        #results { display: none; margin-top: 40px; }
+        .summary-card { background: white; padding: 25px; border-radius: 16px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center; }
+        .total-price { font-size: 2rem; font-weight: 800; color: var(--accent); }
 
-        .activity-row {
-            display: flex; padding: 20px 30px; border-bottom: 1px solid #f1f5f9;
-            align-items: center; transition: background 0.2s;
-        }
-        .activity-row:last-child { border-bottom: none; }
-        .activity-row:hover { background: #f8fafc; }
-        
-        .time-badge { font-weight: 700; color: #94a3b8; min-width: 80px; }
-        .icon { font-size: 1.5rem; margin-right: 20px; }
-        .details { flex-grow: 1; }
-        .activity-name { font-weight: 600; display: block; margin-bottom: 4px; }
-        .price-tag { font-weight: 800; color: var(--accent); background: #fffbeb; padding: 4px 10px; border-radius: 8px; font-size: 0.9rem; }
+        .day-card { background: white; border-radius: 16px; margin-bottom: 20px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+        .day-header { background: #f9fafb; padding: 15px 25px; border-bottom: 1px solid #f3f4f6; display: flex; justify-content: space-between; font-weight: 700; }
+        .activity-row { display: flex; padding: 15px 25px; border-bottom: 1px solid #f3f4f6; align-items: center; }
+        .time { width: 80px; font-weight: 700; color: #9ca3af; font-size: 0.9rem; }
+        .icon { width: 40px; font-size: 1.2rem; }
+        .details { flex: 1; font-weight: 500; }
+        .price { font-weight: 700; color: var(--accent); font-size: 0.9rem; }
 
         /* Loader */
-        .loader { display: none; text-align: center; padding: 50px; }
-        .spinner { width: 50px; height: 50px; border: 5px solid #e2e8f0; border-top-color: var(--primary); border-radius: 50%; animation: spin 1s infinite linear; margin: 0 auto 20px; }
-
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        .loader { display: none; text-align: center; padding: 40px; }
+        .spinner { width: 40px; height: 40px; border: 4px solid #e5e7eb; border-top-color: var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 15px; }
         @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
@@ -110,24 +77,32 @@
 
 <div class="container">
     <header>
-        <h1>WanderLust AI</h1>
-        <p class="tagline">Professional Multi-City Logistics Planner</p>
+        <h1>Travel Planner</h1>
+        <p class="tagline">Perfectly plan your travels using AI</p>
     </header>
 
     <div class="search-panel">
         <form id="tripForm">
             <div class="grid-form">
                 <div>
-                    <label>Origin City</label>
+                    <label>From</label>
                     <input type="text" id="origin" placeholder="e.g. Mumbai" required>
                 </div>
                 <div>
-                    <label>Destinations</label>
+                    <label>To</label>
                     <input type="text" id="dest" placeholder="e.g. Goa, Kerala" required>
                 </div>
                 <div>
-                    <label>Duration</label>
-                    <input type="number" id="days" value="5" min="1" max="10">
+                    <label>Days</label>
+                    <input type="number" id="days" value="3" min="1" max="15">
+                </div>
+                <div>
+                    <label>Budget</label>
+                    <select id="budget">
+                        <option>Budget-friendly</option>
+                        <option>Moderate</option>
+                        <option>Luxury</option>
+                    </select>
                 </div>
                 <div>
                     <label>Currency</label>
@@ -138,55 +113,69 @@
                     </select>
                 </div>
                 <div>
-                    <label>Budget Level</label>
-                    <select id="budget">
-                        <option>Standard</option>
-                        <option>Luxury</option>
-                        <option>Backpacker</option>
-                    </select>
-                </div>
-                <div>
-                    <label>Transport</label>
+                    <label>Transport Mode</label>
                     <select id="transport">
-                        <option>Flight</option>
-                        <option>Train</option>
-                        <option>Private Car</option>
+                        <option value="Train Only">Train Only (Strict)</option>
+                        <option value="Flight Only">Flight Only (Strict)</option>
+                        <option value="Mixed">Mixed (Best Option)</option>
                     </select>
                 </div>
             </div>
-            <button type="submit" id="submitBtn" class="btn-submit">✨ Generate Professional Itinerary</button>
+            <button type="submit" id="submitBtn" class="btn-submit">Plan My Trip</button>
         </form>
+    </div>
+
+    <div id="suggestionBanner">
+        <div class="suggestion-text" id="suggestionText"></div>
+        <button class="btn-apply" id="btnApplySuggestion">Update & Replan</button>
     </div>
 
     <div id="loading" class="loader">
         <div class="spinner"></div>
-        <h3 style="color:var(--primary)">Contacting Travel Providers...</h3>
-        <p style="color:#64748b">Finding exact trains, flights, and current fares.</p>
+        <p>Checking train schedules, flights, and creating your itinerary...</p>
     </div>
 
     <div id="results">
-        <div class="trip-summary-card">
+        <div class="summary-card">
             <div>
-                <h2 style="margin:0; font-size:1.5rem;">Trip Overview</h2>
-                <p id="summaryText" style="margin:5px 0 0 0; opacity:0.8;"></p>
+                <h3 style="margin:0; opacity:0.6; font-size:0.9rem;">TOTAL ESTIMATE</h3>
+                <div class="total-price" id="totalCost"></div>
             </div>
-            <div class="total-price" id="totalCost"></div>
+            <div style="text-align:right; max-width:60%;">
+                <p id="summaryText" style="margin:0; font-weight:500;"></p>
+            </div>
         </div>
         <div id="itineraryList"></div>
     </div>
 </div>
 
 <script>
+    let suggestedDays = 0;
+
     document.getElementById('tripForm').addEventListener('submit', async (e) => {
         e.preventDefault();
+        planTrip();
+    });
+
+    document.getElementById('btnApplySuggestion').addEventListener('click', () => {
+        if (suggestedDays > 0) {
+            document.getElementById('days').value = suggestedDays;
+            document.getElementById('suggestionBanner').style.display = 'none';
+            planTrip(); // Auto re-submit
+        }
+    });
+
+    async function planTrip() {
         const btn = document.getElementById('submitBtn');
         const loader = document.getElementById('loading');
         const results = document.getElementById('results');
+        const banner = document.getElementById('suggestionBanner');
 
+        // Reset UI
         btn.disabled = true;
-        btn.innerHTML = "Planning...";
         loader.style.display = 'block';
         results.style.display = 'none';
+        banner.style.display = 'none';
 
         try {
             const res = await fetch('/api/plan-trip', {
@@ -205,33 +194,34 @@
             const data = await res.json();
             if (data.error) throw new Error(data.error);
 
-            // Populate Data
+            // Handle Suggestion
+            if (data.suggestion && !data.suggestion.is_perfect) {
+                document.getElementById('suggestionText').innerHTML = `💡 <strong>AI Tip:</strong> ${data.suggestion.text}`;
+                suggestedDays = data.suggestion.ideal_days;
+                banner.style.display = 'flex';
+            }
+
+            // Render Results
             document.getElementById('totalCost').innerText = data.total_cost;
             document.getElementById('summaryText').innerText = data.trip_summary;
 
-            // Generate Day Cards with Animation Delays
-            const container = document.getElementById('itineraryList');
-            container.innerHTML = data.itinerary.map((day, index) => `
-                <div class="day-card" style="animation-delay: ${index * 0.2}s">
+            document.getElementById('itineraryList').innerHTML = data.itinerary.map(day => `
+                <div class="day-card">
                     <div class="day-header">
-                        <div class="day-title">Day ${day.day}: ${day.location}</div>
-                        <div class="day-theme">${day.theme}</div>
+                        <span>Day ${day.day}: ${day.location}</span>
+                        <span style="color:#6b7280; font-weight:500;">${day.theme}</span>
                     </div>
-                    <div>
-                        ${day.activities.map(act => `
-                            <div class="activity-row">
-                                <div class="time-badge">${act.time}</div>
-                                <div class="icon">${act.icon || '📍'}</div>
-                                <div class="details">
-                                    <span class="activity-name">${act.activity}</span>
-                                </div>
-                                <div class="price-tag">${act.price}</div>
-                            </div>
-                        `).join('')}
-                    </div>
+                    ${day.activities.map(act => `
+                        <div class="activity-row">
+                            <div class="time">${act.time}</div>
+                            <div class="icon">${act.icon || '📍'}</div>
+                            <div class="details">${act.activity}</div>
+                            <div class="price">${act.price}</div>
+                        </div>
+                    `).join('')}
                 </div>
             `).join('');
-
+            
             results.style.display = 'block';
 
         } catch (err) {
@@ -239,9 +229,8 @@
         } finally {
             loader.style.display = 'none';
             btn.disabled = false;
-            btn.innerHTML = "✨ Generate Professional Itinerary";
         }
-    });
+    }
 </script>
 
 </body>
