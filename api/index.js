@@ -13,42 +13,33 @@ app.post('/api/plan-trip', async (req, res) => {
     const { origin, destination, days, budget, transport, currency } = req.body;
 
     try {
-        // 1. CREATE STRICT TRANSPORT RULES
-        let transportRule = "";
-        if (transport === "Train Only") {
-            transportRule = "STRICTLY TRAIN ONLY. Do NOT suggest flights under any circumstances. If a train route is long, still use the train.";
-        } else if (transport === "Flight Only") {
-            transportRule = "STRICTLY FLIGHT ONLY. Do NOT suggest trains. Use flights for all inter-city travel.";
-        } else {
-            transportRule = "Mix of Flights and Trains based on efficiency and cost.";
-        }
-
         const prompt = `
-            Act as a senior travel logistics manager. Plan a ${days}-day trip from "${origin}" to "${destination}".
+            You are a Travel Logistics Engine.
+            Task: Plan a ${days}-day trip from ${origin} to ${destination}.
             
-            RULES:
-            1. TRANSPORT MODE: ${transportRule}
-            2. REALISM: Use specific names (e.g., "Vande Bharat Exp", "IndiGo 6E-554").
-            3. COSTS: specific price in ${currency} for every item.
-            4. RETURN TRIP: Final day must include return to ${origin}.
-            5. ADVICE: Analyze if ${days} days is enough. If not, suggest the IDEAL duration.
+            CRITICAL RULES:
+            1. REALITY CHECK: If there is an ocean between cities (e.g. Kolkata to New York), you MUST use a Flight, even if the user asked for Train.
+            2. NO HALLUCINATIONS: Do not invent fake trains like "Sealdah to New York". Use real flights (e.g., Emirates, Air India, Qatar Airways).
+            3. PRICING: You must Estimate real-world prices in ${currency}. Do NOT just copy numbers.
+            4. TOTAL COST: Sum up all the daily costs to provide an accurate total.
 
-            Return ONLY raw JSON matching this structure:
+            USER INPUT:
+            - Budget: ${budget}
+            - Mode Preference: ${transport}
+
+            OUTPUT SCHEMA (Return strictly this JSON):
             {
-                "total_cost": "₹45,000",
-                "trip_summary": "A fast-paced 5-day tour...",
-                "suggestion": {
-                    "is_perfect": false, 
-                    "ideal_days": 7, 
-                    "text": "For a relaxed experience covering all spots, we recommend 7 days." 
-                },
+                "total_cost": "Sum of all costs below (e.g. ₹1,50,000)",
+                "trip_summary": "Explain the route and transport choices.",
+                "suggestion": { "is_perfect": true, "text": "Duration advice." },
                 "itinerary": [
                     {
                         "day": 1,
-                        "location": "Origin -> City",
-                        "theme": "Travel",
+                        "location": "City Name",
+                        "theme": "Travel Phase",
                         "activities": [
-                            { "time": "08:00 AM", "activity": "Depart via [Transport Name]", "price": "₹1,200", "icon": "🚆" }
+                            { "time": "09:00 AM", "activity": "Specific flight/train details", "price": "Real Cost", "icon": "✈️" },
+                            { "time": "02:00 PM", "activity": "Activity description", "price": "Real Cost", "icon": "📍" }
                         ]
                     }
                 ]
@@ -57,8 +48,10 @@ app.post('/api/plan-trip', async (req, res) => {
 
         const chatCompletion = await groq.chat.completions.create({
             messages: [{ role: "user", content: prompt }],
-            model: "llama-3.1-8b-instant",
-            temperature: 0.1 // Very strict
+            // UPGRADED MODEL: Smarter, better at math and geography
+            model: "llama-3.3-70b-versatile",
+            temperature: 0.1,
+            max_tokens: 3000
         });
 
         const cleanJson = chatCompletion.choices[0]?.message?.content.replace(/```json/g, '').replace(/```/g, '').trim();
@@ -66,7 +59,7 @@ app.post('/api/plan-trip', async (req, res) => {
 
     } catch (error) {
         console.error("AI Error:", error);
-        res.status(500).json({ error: "Failed to plan. Please try a shorter duration or check API key." });
+        res.status(500).json({ error: "Planning failed. Try a shorter trip duration." });
     }
 });
 
