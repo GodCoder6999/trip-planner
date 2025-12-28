@@ -3,82 +3,100 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Travel Planner - AI Powered</title>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    <title>LuxeTravel AI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&display=swap" rel="stylesheet">
     <style>
-        :root { --primary: #000000; --accent: #2563eb; --bg: #f3f4f6; }
+        :root { --primary: #0f172a; --accent: #f43f5e; --bg: #f8fafc; }
 
         body {
-            background: var(--bg); color: #1f2937;
-            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: var(--bg); color: #334155;
+            font-family: 'Outfit', sans-serif;
             margin: 0; padding: 40px 20px;
         }
 
         .container { max-width: 900px; margin: 0 auto; }
 
-        /* Branding */
-        header { text-align: center; margin-bottom: 40px; }
-        h1 { font-size: 2.8rem; margin: 0; letter-spacing: -1px; }
-        .tagline { color: #6b7280; font-size: 1.1rem; margin-top: 5px; }
+        /* Header */
+        header { text-align: center; margin-bottom: 50px; }
+        h1 { font-size: 3rem; margin: 0; background: linear-gradient(90deg, #0f172a, #334155); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .tagline { color: #64748b; font-size: 1.2rem; margin-top: 10px; }
 
         /* Form */
         .search-panel {
-            background: white; padding: 35px; border-radius: 20px;
-            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05);
+            background: white; padding: 30px; border-radius: 24px;
+            box-shadow: 0 20px 40px -5px rgba(0,0,0,0.05); border: 1px solid #e2e8f0;
         }
         .grid-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
         
-        label { font-size: 0.75rem; font-weight: 800; color: #9ca3af; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; display: block; }
+        label { font-size: 0.8rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; display: block; }
         input, select {
-            width: 100%; padding: 14px; border: 2px solid #e5e7eb; border-radius: 10px;
-            font-size: 1rem; font-weight: 600; box-sizing: border-box; transition: 0.2s;
+            width: 100%; padding: 16px; border: 2px solid #f1f5f9; border-radius: 12px;
+            font-size: 1rem; font-weight: 600; box-sizing: border-box; transition: 0.3s;
         }
-        input:focus, select:focus { border-color: var(--primary); outline: none; }
+        input:focus, select:focus { border-color: var(--primary); outline: none; background: #fff; }
 
         .btn-submit {
-            background: var(--primary); color: white; width: 100%; padding: 18px;
-            border: none; border-radius: 12px; font-size: 1rem; font-weight: 700;
-            cursor: pointer; margin-top: 30px; transition: transform 0.1s;
+            background: var(--primary); color: white; width: 100%; padding: 20px;
+            border: none; border-radius: 14px; font-size: 1.1rem; font-weight: 700;
+            cursor: pointer; margin-top: 30px; transition: transform 0.2s;
         }
-        .btn-submit:hover { transform: scale(1.01); }
-
-        /* Recommendation Banner */
-        #suggestionBanner {
-            display: none; background: #eff6ff; border: 1px solid #bfdbfe;
-            padding: 15px 20px; border-radius: 12px; margin-top: 30px;
-            align-items: center; justify-content: space-between;
-        }
-        .suggestion-text { color: #1e40af; font-size: 0.95rem; font-weight: 600; }
-        .btn-apply {
-            background: #2563eb; color: white; border: none; padding: 8px 16px;
-            border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 0.85rem;
-        }
+        .btn-submit:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
 
         /* Results */
-        #results { display: none; margin-top: 40px; }
-        .summary-card { background: white; padding: 25px; border-radius: 16px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center; }
-        .total-price { font-size: 2rem; font-weight: 800; color: var(--accent); }
+        #results { display: none; margin-top: 50px; }
+        
+        .summary-box {
+            background: var(--primary); color: white; padding: 40px; border-radius: 24px;
+            margin-bottom: 40px; position: relative; overflow: hidden;
+        }
+        .total-price { font-size: 3rem; font-weight: 700; color: #4ade80; }
+        .trip-desc { font-size: 1.1rem; opacity: 0.9; max-width: 80%; line-height: 1.6; }
 
-        .day-card { background: white; border-radius: 16px; margin-bottom: 20px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
-        .day-header { background: #f9fafb; padding: 15px 25px; border-bottom: 1px solid #f3f4f6; display: flex; justify-content: space-between; font-weight: 700; }
-        .activity-row { display: flex; padding: 15px 25px; border-bottom: 1px solid #f3f4f6; align-items: center; }
-        .time { width: 80px; font-weight: 700; color: #9ca3af; font-size: 0.9rem; }
-        .icon { width: 40px; font-size: 1.2rem; }
-        .details { flex: 1; font-weight: 500; }
-        .price { font-weight: 700; color: var(--accent); font-size: 0.9rem; }
+        /* Day Section */
+        .day-section { margin-bottom: 40px; }
+        .day-title { 
+            font-size: 1.5rem; font-weight: 700; margin-bottom: 20px; 
+            display: flex; align-items: center; gap: 10px; color: var(--primary);
+        }
+        .day-badge { background: #e2e8f0; padding: 5px 15px; border-radius: 20px; font-size: 0.9rem; }
+
+        /* Activity Card (The Big Change) */
+        .activity-card {
+            background: white; border-radius: 16px; overflow: hidden; margin-bottom: 20px;
+            display: grid; grid-template-columns: 150px 1fr; 
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); border: 1px solid #f1f5f9;
+            transition: transform 0.2s;
+        }
+        .activity-card:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); }
+
+        .act-img { 
+            width: 100%; height: 100%; object-fit: cover; background: #eee;
+        }
+        .act-content { padding: 20px; display: flex; flex-direction: column; justify-content: center; }
+        
+        .act-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .act-time { color: var(--accent); font-weight: 700; font-size: 0.9rem; }
+        .act-price { background: #ecfdf5; color: #059669; padding: 4px 10px; border-radius: 8px; font-weight: 700; font-size: 0.85rem; }
+        
+        .act-desc { font-size: 1.05rem; font-weight: 500; color: #475569; line-height: 1.5; }
 
         /* Loader */
-        .loader { display: none; text-align: center; padding: 40px; }
-        .spinner { width: 40px; height: 40px; border: 4px solid #e5e7eb; border-top-color: var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 15px; }
+        .loader { display: none; text-align: center; padding: 60px; }
+        .spinner { width: 50px; height: 50px; border: 5px solid #e2e8f0; border-top-color: var(--primary); border-radius: 50%; animation: spin 1s infinite linear; margin: 0 auto 20px; }
         @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Mobile Fix */
+        @media (max-width: 600px) {
+            .activity-card { grid-template-columns: 1fr; grid-template-rows: 150px auto; }
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
     <header>
-        <h1>Travel Planner</h1>
-        <p class="tagline">Perfectly plan your travels using AI</p>
+        <h1>LuxeTravel AI</h1>
+        <p class="tagline">Experience the world, planned to perfection.</p>
     </header>
 
     <div class="search-panel">
@@ -86,22 +104,22 @@
             <div class="grid-form">
                 <div>
                     <label>From</label>
-                    <input type="text" id="origin" placeholder="e.g. Mumbai" required>
+                    <input type="text" id="origin" placeholder="e.g. Kolkata" required>
                 </div>
                 <div>
                     <label>To</label>
-                    <input type="text" id="dest" placeholder="e.g. Goa, Kerala" required>
+                    <input type="text" id="dest" placeholder="e.g. Varanasi, Delhi" required>
                 </div>
                 <div>
-                    <label>Days</label>
-                    <input type="number" id="days" value="3" min="1" max="15">
+                    <label>Duration</label>
+                    <input type="number" id="days" value="5" min="1" max="10">
                 </div>
                 <div>
                     <label>Budget</label>
                     <select id="budget">
-                        <option>Budget-friendly</option>
                         <option>Moderate</option>
                         <option>Luxury</option>
+                        <option>Budget-friendly</option>
                     </select>
                 </div>
                 <div>
@@ -109,73 +127,46 @@
                     <select id="currency">
                         <option value="INR">INR (₹)</option>
                         <option value="USD">USD ($)</option>
-                        <option value="EUR">EUR (€)</option>
                     </select>
                 </div>
                 <div>
-                    <label>Transport Mode</label>
+                    <label>Mode</label>
                     <select id="transport">
-                        <option value="Train Only">Train Only (Strict)</option>
-                        <option value="Flight Only">Flight Only (Strict)</option>
-                        <option value="Mixed">Mixed (Best Option)</option>
+                        <option>Train</option>
+                        <option>Flight</option>
+                        <option>Mixed</option>
                     </select>
                 </div>
             </div>
-            <button type="submit" id="submitBtn" class="btn-submit">Plan My Trip</button>
+            <button type="submit" id="submitBtn" class="btn-submit">✨ Plan My Luxury Trip</button>
         </form>
-    </div>
-
-    <div id="suggestionBanner">
-        <div class="suggestion-text" id="suggestionText"></div>
-        <button class="btn-apply" id="btnApplySuggestion">Update & Replan</button>
     </div>
 
     <div id="loading" class="loader">
         <div class="spinner"></div>
-        <p>Checking train schedules, flights, and creating your itinerary...</p>
+        <h3>Curating your experience...</h3>
+        <p style="color:#64748b">Finding hidden gems, best routes, and vivid photos.</p>
     </div>
 
     <div id="results">
-        <div class="summary-card">
-            <div>
-                <h3 style="margin:0; opacity:0.6; font-size:0.9rem;">TOTAL ESTIMATE</h3>
-                <div class="total-price" id="totalCost"></div>
-            </div>
-            <div style="text-align:right; max-width:60%;">
-                <p id="summaryText" style="margin:0; font-weight:500;"></p>
-            </div>
+        <div class="summary-box">
+            <div class="total-price" id="totalCost"></div>
+            <p class="trip-desc" id="summaryText"></p>
         </div>
         <div id="itineraryList"></div>
     </div>
 </div>
 
 <script>
-    let suggestedDays = 0;
-
     document.getElementById('tripForm').addEventListener('submit', async (e) => {
         e.preventDefault();
-        planTrip();
-    });
-
-    document.getElementById('btnApplySuggestion').addEventListener('click', () => {
-        if (suggestedDays > 0) {
-            document.getElementById('days').value = suggestedDays;
-            document.getElementById('suggestionBanner').style.display = 'none';
-            planTrip(); // Auto re-submit
-        }
-    });
-
-    async function planTrip() {
         const btn = document.getElementById('submitBtn');
         const loader = document.getElementById('loading');
         const results = document.getElementById('results');
-        const banner = document.getElementById('suggestionBanner');
 
-        // Reset UI
         btn.disabled = true;
         loader.style.display = 'block';
         results.style.display = 'none';
-        banner.style.display = 'none';
 
         try {
             const res = await fetch('/api/plan-trip', {
@@ -194,43 +185,51 @@
             const data = await res.json();
             if (data.error) throw new Error(data.error);
 
-            // Handle Suggestion
-            if (data.suggestion && !data.suggestion.is_perfect) {
-                document.getElementById('suggestionText').innerHTML = `💡 <strong>AI Tip:</strong> ${data.suggestion.text}`;
-                suggestedDays = data.suggestion.ideal_days;
-                banner.style.display = 'flex';
-            }
-
-            // Render Results
+            // Render Summary
             document.getElementById('totalCost').innerText = data.total_cost;
             document.getElementById('summaryText').innerText = data.trip_summary;
 
-            document.getElementById('itineraryList').innerHTML = data.itinerary.map(day => `
-                <div class="day-card">
-                    <div class="day-header">
-                        <span>Day ${day.day}: ${day.location}</span>
-                        <span style="color:#6b7280; font-weight:500;">${day.theme}</span>
+            // Render Itinerary with Images
+            const container = document.getElementById('itineraryList');
+            container.innerHTML = data.itinerary.map(day => `
+                <div class="day-section">
+                    <div class="day-title">
+                        <span class="day-badge">Day ${day.day}</span> 
+                        ${day.location} 
+                        <span style="font-weight:400; color:#64748b; font-size:1rem; margin-left:auto">${day.theme}</span>
                     </div>
-                    ${day.activities.map(act => `
-                        <div class="activity-row">
-                            <div class="time">${act.time}</div>
-                            <div class="icon">${act.icon || '📍'}</div>
-                            <div class="details">${act.activity}</div>
-                            <div class="price">${act.price}</div>
-                        </div>
-                    `).join('')}
+                    <div>
+                        ${day.activities.map(act => {
+                            // High Quality Image URL based on keyword
+                            const imgUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(act.img_key)}?width=300&height=300&nologo=true`;
+                            return `
+                                <div class="activity-card">
+                                    <img src="${imgUrl}" class="act-img" loading="lazy" alt="${act.img_key}">
+                                    <div class="act-content">
+                                        <div class="act-header">
+                                            <div class="act-time">${act.time}</div>
+                                            <div class="act-price">${act.price}</div>
+                                        </div>
+                                        <div class="act-desc">
+                                            ${act.icon} ${act.activity}
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
                 </div>
             `).join('');
-            
+
             results.style.display = 'block';
 
         } catch (err) {
-            alert("Error: " + err.message);
+            alert(err.message);
         } finally {
             loader.style.display = 'none';
             btn.disabled = false;
         }
-    }
+    });
 </script>
 
 </body>
