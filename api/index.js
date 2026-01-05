@@ -11,7 +11,7 @@ app.use(cors({ origin: '*' }));
 app.use(express.json());
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY; 
-const GROQ_URL = "[https://api.groq.com/openai/v1/chat/completions](https://api.groq.com/openai/v1/chat/completions)";
+const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
 
 // 2. BULLETPROOF JSON CLEANER (Fixes the "Vanish" bug)
 function cleanJSON(text) {
