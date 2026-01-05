@@ -1,90 +1,133 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const OpenAI = require('openai');
+const axios = require('axios');
 
 const app = express();
-app.use(cors());
+const PORT = process.env.PORT || 3000;
+
+// 1. Enable CORS for all
+app.use(cors({ origin: '*' }));
 app.use(express.json());
 
-app.post('/api/plan-trip', async (req, res) => {
+const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY; 
+const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
+
+// 2. Helper: Clean JSON from AI response (Removes Markdown)
+function cleanJSON(text) {
     try {
-        if (!process.env.OPENROUTER_API_KEY) throw new Error("Missing OPENROUTER_API_KEY");
-
-        const openai = new OpenAI({
-            baseURL: "https://openrouter.ai/api/v1",
-            apiKey: process.env.OPENROUTER_API_KEY,
-            defaultHeaders: { "HTTP-Referer": "https://travel-planner.vercel.app", "X-Title": "AI Travel Planner" }
-        });
-
-        const { origin, destination, days, budget, transport, mode } = req.body;
+        console.log("Raw AI Output:", text); // Debug log
+        let clean = text.replace(/```json/g, '').replace(/```/g, '').trim();
         
-        // --- BUTTON LOGIC ---
-        let specificInstruction = "";
-        if (mode === 'suggestion') {
-            specificInstruction = `IGNORE user's ${days} days. Calculate the PERFECT duration.`;
-        } else if (mode === 'alternate') {
-            specificInstruction = `Plan a DIFFERENT route than standard. Use alternative stopovers.`;
-        } else {
-            specificInstruction = `Plan exactly for ${days} days.`;
+        const firstSquare = clean.indexOf('[');
+        const lastSquare = clean.lastIndexOf(']');
+        const firstCurly = clean.indexOf('{');
+        const lastCurly = clean.lastIndexOf('}');
+        
+        // Prioritize Arrays
+        if (firstSquare !== -1 && lastSquare !== -1) {
+            return JSON.parse(clean.substring(firstSquare, lastSquare + 1));
         }
+        // Fallback to Objects
+        if (firstCurly !== -1 && lastCurly !== -1) {
+            return JSON.parse(clean.substring(firstCurly, lastCurly + 1));
+        }
+        return JSON.parse(clean);
+    } catch (e) {
+        console.error("JSON Clean Error:", e.message);
+        return []; 
+    }
+}
 
-        const prompt = `
-            Act as a Senior Travel Expert. Plan a trip from ${origin} to ${destination}.
-            Mode: ${transport}. Budget: ${budget}.
-            
-            INSTRUCTIONS:
-            ${specificInstruction}
+// --- ROUTE 1: SMART SEARCH (Curate/Dream) ---
+app.post('/api/smart-search', async (req, res) => {
+    try {
+        if (!OPENROUTER_API_KEY) return res.status(500).json({ error: "Missing OpenRouter Key" });
 
-            STRICT RULES:
-            1. TIMES: Include specific times (e.g. "06:00 AM").
-            2. REALISM: Use real train numbers (e.g. 12301) and prices (₹).
-            3. LOGIC: Geographic linear route.
-            4. EXTRAS: For every major city visited, list 2 "Most Popular" spots and 2 "Underrated/Hidden" gems.
-            5. FORMAT: JSON ONLY.
-
-            OUTPUT JSON STRUCTURE:
-            {
-                "cost": "₹ Total",
-                "sum": "Summary",
-                "itin": [
-                    { 
-                        "d": 1, 
-                        "loc": "City Name", 
-                        "act": [ 
-                            { "t": "09:00 AM", "a": "Activity", "p": "₹500", "i": "Keyword" } 
-                        ] 
-                    }
-                ],
-                "extras": [
-                    {
-                        "city": "City Name",
-                        "pop": ["Taj Mahal", "Agra Fort"],
-                        "hidden": ["Mehtab Bagh (Sunset view)", "Sheroes Hangout Cafe"]
-                    }
-                ]
+        const { refTitle, userPrompt, type, exclude = [] } = req.body;
+        
+        // 3. OpenRouter Payload
+        const payload = {
+            // "meta-llama/llama-3.3-70b-instruct" is the OpenRouter ID for the Llama 3.3 70B model
+            model: "meta-llama/llama-3.3-70b-instruct", 
+            messages: [
+                {
+                    role: "system",
+                    content: `You are a film curator. Recommend 12 ${type === 'tv' ? 'Series' : 'Movies'} based on: "${userPrompt}" (Ref: ${refTitle}).
+                    Do NOT recommend: ${exclude.join(', ')}.
+                    STRICT INSTRUCTION: Output ONLY a raw JSON Array. No Markdown. No intro text.
+                    Example: [ { "title": "Name", "reason": "Why it fits", "score": 90 } ]`
+                },
+                { role: "user", content: "Generate recommendations now." }
+            ],
+            temperature: 0.7, // Higher creativity for curation
+            // Optional headers for OpenRouter ranking
+            provider: {
+                allow_fallbacks: true
             }
-        `;
+        };
 
-        const completion = await openai.chat.completions.create({
-            messages: [{ role: "user", content: prompt }],
-            model: "meta-llama/llama-3.3-70b-instruct:free",
-            temperature: 0.2,
-            max_tokens: 3000
+        const response = await axios.post(OPENROUTER_URL, payload, {
+            headers: {
+                "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
+                "Content-Type": "application/json",
+                "HTTP-Referer": "https://cinegenius.vercel.app", // Optional: Your site URL
+                "X-Title": "CineGenius" // Optional: Your App Name
+            }
         });
 
-        let raw = completion.choices[0]?.message?.content || "";
-        const jsonStart = raw.indexOf('{');
-        const jsonEnd = raw.lastIndexOf('}');
-        
-        if (jsonStart === -1) throw new Error("AI failed to generate plan.");
-        
-        res.json(JSON.parse(raw.substring(jsonStart, jsonEnd + 1)));
+        // OpenRouter follows OpenAI format, so content is here:
+        const rawText = response.data.choices[0].message.content;
+        const data = cleanJSON(rawText);
+        res.json(data);
 
     } catch (error) {
-        console.error("Error:", error);
-        res.status(500).json({ error: error.message || "Failed to plan." });
+        console.error("OpenRouter Error:", error.response?.data || error.message);
+        res.json([]); 
     }
 });
+
+// --- ROUTE 2: INTEL BRIEF ---
+app.post('/api/intel-brief', async (req, res) => {
+    try {
+        if (!OPENROUTER_API_KEY) return res.status(500).json({ error: "Missing Key" });
+
+        const { title, type } = req.body;
+        
+        const payload = {
+            model: "meta-llama/llama-3.3-70b-instruct",
+            messages: [
+                {
+                    role: "system",
+                    content: `Analyze "${title}" (${type}). Return ONE JSON object. No Markdown.
+                    Format: { "plot_twist": "Spoiler", "cultural_impact": "Impact", "budget_est": "$X", "revenue_est": "$X", "status_verdict": "Hit/Flop", "tagline_ai": "Fun tagline" }`
+                }
+            ],
+            temperature: 0.3 // Lower temp for facts
+        };
+
+        const response = await axios.post(OPENROUTER_URL, payload, {
+            headers: {
+                "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
+                "Content-Type": "application/json",
+                "HTTP-Referer": "https://cinegenius.vercel.app",
+                "X-Title": "CineGenius"
+            }
+        });
+
+        const rawText = response.data.choices[0].message.content;
+        const data = cleanJSON(rawText);
+        res.json(data);
+
+    } catch (error) {
+        console.error("Intel Error:", error.message);
+        res.json({ tagline_ai: "Analysis Failed" });
+    }
+});
+
+// Local Dev
+if (process.env.NODE_ENV !== 'production') {
+    app.listen(PORT, () => console.log(`Server running on ${PORT}`));
+}
 
 module.exports = app;
