@@ -6,78 +6,61 @@ const axios = require('axios');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// 1. Permissive CORS (Essential for Vercel/Frontend communication)
-app.use(cors({
-    origin: '*',
-    methods: ['GET', 'POST', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization']
-}));
-
+// 1. Enable CORS
+app.use(cors({ origin: '*' }));
 app.use(express.json());
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY; 
 const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
 
-// 2. BULLETPROOF JSON PARSER (The Fix for "Vanish" bug)
-// Llama 3.3 loves to wrap JSON in ```json ... ```. This function removes that.
+// 2. BULLETPROOF JSON CLEANER
 function cleanJSON(text) {
-    console.log("Raw AI Response:", text); // Logs to Vercel for debugging
     try {
-        // Step A: Strip Markdown code blocks
+        console.log("Raw AI Output:", text);
+        // Remove markdown
         let clean = text.replace(/```json/g, '').replace(/```/g, '').trim();
-
-        // Step B: Find the actual JSON array or object
+        // Find array brackets
         const firstSquare = clean.indexOf('[');
         const lastSquare = clean.lastIndexOf(']');
         const firstCurly = clean.indexOf('{');
         const lastCurly = clean.lastIndexOf('}');
-
-        // Prioritize Arrays (for lists of movies)
+        
         if (firstSquare !== -1 && lastSquare !== -1) {
             return JSON.parse(clean.substring(firstSquare, lastSquare + 1));
         }
-        // Fallback to Objects (for single movie details)
         if (firstCurly !== -1 && lastCurly !== -1) {
             return JSON.parse(clean.substring(firstCurly, lastCurly + 1));
         }
-
-        // Final attempt: Parse as is
         return JSON.parse(clean);
-    } catch (e) { 
-        console.error("❌ JSON Parse Failed:", e.message);
-        return []; // Return empty array to prevent frontend crash
+    } catch (e) {
+        console.error("JSON Clean Error:", e.message);
+        return []; 
     }
 }
 
-// --- ROUTE 1: SMART SEARCH (Curate/Dream) ---
+// --- ROUTE 1: SMART SEARCH (Optimized for Speed) ---
 app.post('/api/smart-search', async (req, res) => {
     try {
-        if (!GROQ_API_KEY) {
-            console.error("❌ Server Error: Missing GROQ_API_KEY");
-            return res.status(500).json({ error: "Server Configuration Error" });
-        }
+        if (!GROQ_API_KEY) return res.status(500).json({ error: "Missing Groq Key" });
 
-        const { refTitle, userPrompt, type, exclude = [] } = req.body; 
-        
-        // Build exclusion string
-        const excludeString = exclude.length > 0 
-            ? `\n\nIMPORTANT: Do NOT recommend these specific titles: ${exclude.join(', ')}.` 
-            : '';
+        const { refTitle, userPrompt, type, exclude = [] } = req.body;
+        const excludeString = exclude.length > 0 ? `Excluding: ${exclude.join(', ')}` : '';
 
         const payload = {
-            model: "llama-3.3-70b-versatile", // The specific model you requested
+            model: "llama-3.3-70b-versatile",
             messages: [
                 {
                     role: "system",
-                    content: `You are a film curator. Recommend 12 ${type === 'tv' ? 'Series' : 'Movies'}. 
-                    STRICT INSTRUCTION: Output ONLY a valid JSON Array. Do not write intro text. Do not use Markdown blocks.
-                    Format: [ { "title": "Exact Title", "reason": "Short reason", "score": 85 } ]
+                    content: `You are a film curator. Recommend 6 ${type === 'tv' ? 'Series' : 'Movies'}. 
+                    STRICT INSTRUCTION: Return ONLY a raw JSON Array. No intro text. No Markdown.
+                    Format: [ { "title": "Title", "reason": "Short reason", "score": 90 } ]
                     ${excludeString}`
                 },
-                { role: "user", content: `Ref: "${refTitle}". User Note: "${userPrompt}".` }
+                { role: "user", content: `Ref: "${refTitle}". Note: "${userPrompt}".` }
             ],
-            // Lower temperature makes the model follow format rules better
-            temperature: 0.5 
+            // Lower tokens slightly to ensure it finishes fast
+            max_tokens: 1024,
+            temperature: 0.6
         };
 
         const response = await axios.post(GROQ_URL, payload, { 
@@ -88,7 +71,7 @@ app.post('/api/smart-search', async (req, res) => {
         res.json(data);
 
     } catch (error) {
-        console.error("❌ API Route Error:", error.message);
+        console.error("Groq API Error:", error.message);
         res.json([]); 
     }
 });
@@ -96,17 +79,20 @@ app.post('/api/smart-search', async (req, res) => {
 // --- ROUTE 2: INTEL BRIEF ---
 app.post('/api/intel-brief', async (req, res) => {
     try {
+        if (!GROQ_API_KEY) return res.status(500).json({ error: "Missing Groq Key" });
+
         const { title, type } = req.body;
+        
         const payload = {
             model: "llama-3.3-70b-versatile",
             messages: [
                 {
                     role: "system",
-                    content: `You are a film archivist. Output ONLY valid JSON. No Markdown.
-                    Format: { "plot_twist": "...", "cultural_impact": "...", "budget_est": "...", "revenue_est": "...", "status_verdict": "Hit/Flop/Cult", "tagline_ai": "..." }`
-                },
-                { role: "user", content: `Analyze: "${title}" (${type})` }
+                    content: `Analyze "${title}" (${type}). Return ONLY raw JSON. No Markdown.
+                    Format: { "plot_twist": "Spoiler", "cultural_impact": "Impact", "budget_est": "$X", "revenue_est": "$X", "status_verdict": "Hit/Flop", "tagline_ai": "Tagline" }`
+                }
             ],
+            max_tokens: 500,
             temperature: 0.3
         };
 
@@ -118,16 +104,14 @@ app.post('/api/intel-brief', async (req, res) => {
         res.json(data);
 
     } catch (error) {
-        console.error("❌ Intel Error:", error.message);
-        res.json({ plot_twist: "Data Redacted (Error)", tagline_ai: "System Offline" });
+        console.error("Intel API Error:", error.message);
+        res.json({ tagline_ai: "Analysis Unavailable" });
     }
 });
 
-// Start Server (For Local Testing)
+// Start Server
 if (process.env.NODE_ENV !== 'production') {
-    app.listen(PORT, () => {
-        console.log(`🚀 Backend running locally on port ${PORT}`);
-    });
+    app.listen(PORT, () => console.log(`🚀 Groq Server running on port ${PORT}`));
 }
 
 module.exports = app;
